@@ -76,19 +76,28 @@ export class AuthService {
       const token = await userCredential.user.getIdToken();
       const refreshToken = userCredential.user.refreshToken;
 
-      const user: User = {
-        id: userCredential.user.uid,
-        email: userCredential.user.email || '',
-        displayName: userCredential.user.displayName || 'User',
-        joinedDate: new Date(userCredential.user.metadata.creationTime || Date.now()).toISOString(),
-        lastActive: new Date().toISOString(),
-        role: credentials.email === 'admin448@codeguidex.com' ? 'admin' : 'student',
-      };
+      let user: User;
 
-      // Ensure user profile exists in Firestore (don't block login)
-      ProfileService.createProfile(user).catch((error) => {
-        console.warn('Profile creation failed, but login succeeded:', error.message);
-      });
+      try {
+        // Attempt to fetch the existing profile to get the correct role
+        user = await ProfileService.getProfile(userCredential.user.uid);
+      } catch (error) {
+        console.warn('Profile fetch failed during login, falling back to basic info:', error);
+        // Fallback to basic user info if profile fetch fails
+        user = {
+          id: userCredential.user.uid,
+          email: userCredential.user.email || '',
+          displayName: userCredential.user.displayName || 'User',
+          joinedDate: new Date(userCredential.user.metadata.creationTime || Date.now()).toISOString(),
+          lastActive: new Date().toISOString(),
+          role: credentials.email === 'admin448@codeguidex.com' ? 'admin' : 'student',
+        };
+
+        // Ensure user profile exists in Firestore (don't block login)
+        ProfileService.createProfile(user).catch((error) => {
+          console.warn('Profile creation failed, but login succeeded:', error.message);
+        });
+      }
 
       return {
         user,
@@ -116,18 +125,24 @@ export class AuthService {
       const token = await result.user.getIdToken();
       const refreshToken = result.user.refreshToken;
 
-      const user: User = {
-        id: result.user.uid,
-        email: result.user.email || '',
-        displayName: result.user.displayName || 'Google User',
-        profilePicture: result.user.photoURL || undefined,
-        joinedDate: new Date(result.user.metadata.creationTime || Date.now()).toISOString(),
-        lastActive: new Date().toISOString(),
-        role: result.user.email === 'admin448@codeguidex.com' ? 'admin' : 'student',
-      };
+      let user: User;
 
-      // Ensure user profile exists in Firestore
-      await ProfileService.createProfile(user);
+      try {
+        user = await ProfileService.getProfile(result.user.uid);
+      } catch (error) {
+        user = {
+          id: result.user.uid,
+          email: result.user.email || '',
+          displayName: result.user.displayName || 'Google User',
+          profilePicture: result.user.photoURL || undefined,
+          joinedDate: new Date(result.user.metadata.creationTime || Date.now()).toISOString(),
+          lastActive: new Date().toISOString(),
+          role: result.user.email === 'admin448@codeguidex.com' ? 'admin' : 'student',
+        };
+
+        // Ensure user profile exists in Firestore
+        await ProfileService.createProfile(user);
+      }
 
       return {
         user,
@@ -137,11 +152,11 @@ export class AuthService {
     } catch (error: any) {
       // Handle various popup-related errors
       if (error.code === 'auth/popup-blocked' ||
-          error.code === 'auth/popup-closed-by-user' ||
-          error.message.includes('Cross-Origin-Opener-Policy') ||
-          error.message.includes('blocked') ||
-          error.message.includes('denied') ||
-          error.message.includes('COOP')) {
+        error.code === 'auth/popup-closed-by-user' ||
+        error.message.includes('Cross-Origin-Opener-Policy') ||
+        error.message.includes('blocked') ||
+        error.message.includes('denied') ||
+        error.message.includes('COOP')) {
         try {
           // Fallback to redirect authentication
           await signInWithRedirect(auth, googleProvider);
@@ -169,20 +184,26 @@ export class AuthService {
         const token = await result.user.getIdToken();
         const refreshToken = result.user.refreshToken;
 
-        const user: User = {
-          id: result.user.uid,
-          email: result.user.email || '',
-          displayName: result.user.displayName || 'Google User',
-          profilePicture: result.user.photoURL || undefined,
-          joinedDate: new Date(result.user.metadata.creationTime || Date.now()).toISOString(),
-          lastActive: new Date().toISOString(),
-          role: result.user.email === 'admin448@codeguidex.com' ? 'admin' : 'student',
-        };
+        let user: User;
 
-        // Ensure user profile exists in Firestore (don't block login)
-        ProfileService.createProfile(user).catch((error) => {
-          console.warn('Profile creation failed, but login succeeded:', error.message);
-        });
+        try {
+          user = await ProfileService.getProfile(result.user.uid);
+        } catch (error) {
+          user = {
+            id: result.user.uid,
+            email: result.user.email || '',
+            displayName: result.user.displayName || 'Google User',
+            profilePicture: result.user.photoURL || undefined,
+            joinedDate: new Date(result.user.metadata.creationTime || Date.now()).toISOString(),
+            lastActive: new Date().toISOString(),
+            role: result.user.email === 'admin448@codeguidex.com' ? 'admin' : 'student',
+          };
+
+          // Ensure user profile exists in Firestore (don't block login)
+          ProfileService.createProfile(user).catch((error) => {
+            console.warn('Profile creation failed, but login succeeded:', error.message);
+          });
+        }
 
         return {
           user,

@@ -222,8 +222,8 @@ export function SearchBar({
             placeholder={placeholder}
             className="
               w-full
-              px-4 py-3 pl-12 pr-20
-              border border-gray-200/80 rounded-xl
+              px-5 py-4 pl-14 pr-20
+              border border-gray-200/80 rounded-2xl
               bg-white/50 hover:bg-white hover:border-gray-300
               focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
               dark:bg-gray-800/50 dark:border-gray-600/80 dark:text-white
@@ -232,7 +232,8 @@ export function SearchBar({
               transition-all duration-300
               shadow-sm hover:shadow-md focus:shadow-lg focus:shadow-blue-500/10
               backdrop-blur-sm
-              text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
+              text-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
+              min-h-[3.5rem]
             "
             aria-label="Search"
             role="searchbox"
