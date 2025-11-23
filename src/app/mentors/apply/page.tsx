@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { MentorService } from '@/services/mentor.service';
-import { CreateMentorProfileData, MentorSpecialization, MentorSkill } from '@/types/mentor.types';
+import { CreateMentorProfileData, MentorSpecialization } from '@/types/mentor.types';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 const SPECIALIZATIONS: MentorSpecialization[] = [

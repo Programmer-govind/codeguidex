@@ -103,7 +103,7 @@ export default function StudentBookingsPage() {
                                                             ? 'success'
                                                             : booking.status === 'pending'
                                                                 ? 'warning'
-                                                                : 'error'
+                                                                : 'danger'
                                                     }
                                                     size="sm"
                                                 />

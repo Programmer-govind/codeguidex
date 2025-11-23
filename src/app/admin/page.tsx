@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAppSelector } from '@/store/hooks';
 import { AdminService, RecentActivity } from '@/services/admin.service';
 import {
   AreaChart,
@@ -47,7 +46,6 @@ const activityData = [
 ];
 
 export default function AdminDashboard() {
-  const { user } = useAppSelector((state) => state.auth);
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalPosts: 0,

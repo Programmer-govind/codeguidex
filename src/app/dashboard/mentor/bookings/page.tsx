@@ -131,7 +131,7 @@ export default function MentorBookingsPage() {
                                                             ? 'success'
                                                             : booking.status === 'pending'
                                                                 ? 'warning'
-                                                                : 'error'
+                                                                : 'danger'
                                                     }
                                                     size="sm"
                                                 />

@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 import { useAuth } from '@/hooks/useAuth';
-import { MentorService } from '@/services/mentor.service';
-import { MentorSession } from '@/types/mentor.types';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 interface VideoSessionPageProps {
@@ -24,8 +22,7 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
     const router = useRouter();
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [api, setApi] = useState<any>(null);
+    const [_api, setApi] = useState<any>(null);
 
     useEffect(() => {
         // In a real app, we would verify the session exists and the user is a participant
