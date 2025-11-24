@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { validateEmail } from '@/utils/validators';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -107,13 +109,12 @@ export default function LoginForm() {
         <label htmlFor="email" className="form-label">
           Email
         </label>
-        <input
+        <Input
           type="email"
           id="email"
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className="form-input"
           placeholder="your@email.com"
           disabled={isLoading}
         />
@@ -124,13 +125,12 @@ export default function LoginForm() {
         <label htmlFor="password" className="form-label">
           Password
         </label>
-        <input
+        <Input
           type="password"
           id="password"
           name="password"
           value={formData.password}
           onChange={handleChange}
-          className="form-input"
           placeholder="••••••••"
           disabled={isLoading}
         />
@@ -149,13 +149,13 @@ export default function LoginForm() {
         </div>
       )}
 
-      <button
+      <Button
         type="submit"
         disabled={isLoading}
-        className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isLoading ? 'Logging in...' : 'Login'}
-      </button>
+      </Button>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
@@ -166,14 +166,15 @@ export default function LoginForm() {
         </div>
       </div>
 
-      <button
+      <Button
         type="button"
+        variant="secondary"
         onClick={handleGoogleLogin}
         disabled={isLoading}
-        className="btn-secondary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isLoading ? 'Loading...' : 'Google'}
-      </button>
+      </Button>
 
       <p className="text-center text-sm text-gray-600">
         Don't have an account?{' '}

@@ -16,58 +16,74 @@ import { ProfileService } from '@/services/profile.service';
  */
 function AuthStateListener() {
   useEffect(() => {
+    // Check if auth is initialized
+    if (!auth) {
+      console.warn('Firebase Auth not initialized. Skipping auth state listener.');
+      store.dispatch(setLoading(false));
+      return;
+    }
+
     // Set loading to true when starting auth check
     store.dispatch(setLoading(true));
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // User is signed in
-        try {
-          const token = await firebaseUser.getIdToken();
+    let unsubscribe: () => void;
 
-          let user;
-
+    try {
+      unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        if (firebaseUser) {
+          // User is signed in
           try {
-            user = await ProfileService.getProfile(firebaseUser.uid);
-          } catch (profileError: any) {
-            // If profile doesn't exist or fetch fails, use basic info
-            console.warn('User profile not found or fetch failed, using basic info:', profileError.message);
+            const token = await firebaseUser.getIdToken();
 
-            // For admin users, set the correct role
-            const isAdmin = firebaseUser.email === 'admin448@codeguidex.com';
-            const userRole: UserRole = isAdmin ? 'admin' : 'student';
+            let user;
 
-            const basicUser = {
-              id: firebaseUser.uid,
-              email: firebaseUser.email || '',
-              displayName: firebaseUser.displayName || 'User',
-              profilePicture: firebaseUser.photoURL || undefined,
-              joinedDate: new Date(firebaseUser.metadata.creationTime || Date.now()).toISOString(),
-              lastActive: new Date().toISOString(),
-              role: userRole,
-            };
+            try {
+              user = await ProfileService.getProfile(firebaseUser.uid);
+            } catch (profileError: any) {
+              // If profile doesn't exist or fetch fails, use basic info
+              console.warn('User profile not found or fetch failed, using basic info:', profileError.message);
 
-            user = basicUser;
+              // For admin users, set the correct role
+              const isAdmin = firebaseUser.email === 'admin448@codeguidex.com';
+              const userRole: UserRole = isAdmin ? 'admin' : 'student';
 
-            // Try to create profile asynchronously (don't block login)
-            ProfileService.createProfile(basicUser).catch((createError: any) => {
-              console.warn('Failed to create profile asynchronously:', createError.message);
-            });
+              const basicUser = {
+                id: firebaseUser.uid,
+                email: firebaseUser.email || '',
+                displayName: firebaseUser.displayName || 'User',
+                profilePicture: firebaseUser.photoURL || undefined,
+                joinedDate: new Date(firebaseUser.metadata.creationTime || Date.now()).toISOString(),
+                lastActive: new Date().toISOString(),
+                role: userRole,
+              };
+
+              user = basicUser;
+
+              // Try to create profile asynchronously (don't block login)
+              ProfileService.createProfile(basicUser).catch((createError: any) => {
+                console.warn('Failed to create profile asynchronously:', createError.message);
+              });
+            }
+
+            store.dispatch(setAuthenticatedUser({ user, token }));
+          } catch (error) {
+            console.error('Error getting auth token or setting user:', error);
+            store.dispatch(clearAuth());
           }
-
-          store.dispatch(setAuthenticatedUser({ user, token }));
-        } catch (error) {
-          console.error('Error getting auth token or setting user:', error);
-          // Clear auth on critical errors (like token issues)
+        } else {
+          // User is signed out
           store.dispatch(clearAuth());
         }
-      } else {
-        // User is signed out
-        store.dispatch(clearAuth());
-      }
-    });
+      });
+    } catch (error) {
+      console.error('Error initializing auth listener:', error);
+      store.dispatch(setLoading(false));
+      return;
+    }
 
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   return null;

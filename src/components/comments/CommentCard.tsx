@@ -63,7 +63,7 @@ export default function CommentCard({
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 mb-4 bg-white hover:shadow-sm transition">
+    <div className="glass-card p-6 mb-6 rounded-2xl hover:shadow-xl transition-all duration-300 border border-gray-100/50 dark:border-gray-700/50">
       {/* Comment Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
@@ -71,7 +71,7 @@ export default function CommentCard({
             <img
               src={comment.authorProfilePicture}
               alt={comment.authorName}
-              className="w-10 h-10 rounded-full object-cover"
+              className="w-11 h-11 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700 shadow-md"
             />
           )}
           <div>
@@ -93,43 +93,52 @@ export default function CommentCard({
 
       {/* Comment Content */}
       {isEditing ? (
-        <div className="mb-3">
+        <div className="mb-4 space-y-3">
           <textarea
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+            className="input-field min-h-[100px] resize-y"
             rows={3}
             maxLength={5000}
+            placeholder="Edit your comment..."
           />
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-3">
             <button
               onClick={handleEditSubmit}
-              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+              className="btn-primary px-6 py-2 text-sm"
             >
-              Save
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Save Changes
             </button>
             <button
               onClick={() => {
                 setIsEditing(false);
                 setEditContent(comment.content);
               }}
-              className="px-3 py-1 bg-gray-200 text-gray-800 text-sm rounded hover:bg-gray-300"
+              className="btn-secondary px-6 py-2 text-sm"
             >
               Cancel
             </button>
           </div>
         </div>
       ) : (
-        <div className="mb-3 text-gray-700 whitespace-pre-wrap break-words">
+        <div className="mb-4 text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words leading-relaxed">
           {comment.content}
         </div>
       )}
 
       {/* Code Snippet */}
       {comment.codeSnippet && (
-        <div className="mb-3 bg-gray-900 text-gray-100 p-3 rounded text-sm font-mono overflow-x-auto">
-          <div className="text-xs text-gray-400 mb-2">{comment.codeSnippet.language}</div>
-          <code>{comment.codeSnippet.code}</code>
+        <div className="mb-4 bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 p-5 rounded-xl text-sm font-mono overflow-x-auto shadow-lg border border-gray-700/50">
+          <div className="text-xs font-semibold text-blue-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+            {comment.codeSnippet.language}
+          </div>
+          <code className="text-emerald-400">{comment.codeSnippet.code}</code>
         </div>
       )}
 
@@ -144,17 +153,23 @@ export default function CommentCard({
 
         <button
           onClick={() => setIsReplying(!isReplying)}
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          className="btn-outline px-4 py-2 text-sm"
         >
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+          </svg>
           {isReplying ? 'Cancel' : 'Reply'}
         </button>
 
         {comment.replyCount > 0 && (
           <button
             onClick={handleToggleReplies}
-            className="text-sm text-gray-600 hover:text-gray-800 font-medium"
+            className="btn-outline px-4 py-2 text-sm flex items-center gap-2"
           >
-            {showReplies ? '▼' : '▶'} {comment.replyCount} {comment.replyCount === 1 ? 'reply' : 'replies'}
+            <svg className={`w-4 h-4 transition-transform ${showReplies ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+            <span className="font-semibold">{comment.replyCount}</span> {comment.replyCount === 1 ? 'reply' : 'replies'}
           </button>
         )}
       </div>

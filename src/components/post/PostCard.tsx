@@ -24,7 +24,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 }) => {
   return (
     <Link href={`/communities/${communityId}/posts/${post.id}`}>
-      <div className="bg-white rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all p-6">
+      <div className="glass-card p-6 hover:shadow-lg transition-all">
         <div className="flex gap-4">
           {/* Voting Section */}
           <div className="flex flex-col items-center gap-2">
@@ -35,8 +35,8 @@ export const PostCard: React.FC<PostCardProps> = ({
               }}
               disabled={isVoting}
               className={`p-2 rounded hover:bg-gray-100 transition-colors ${userVote === 'upvote'
-                  ? 'text-green-500 bg-green-50'
-                  : 'text-gray-400'
+                ? 'text-green-500 bg-green-50'
+                : 'text-gray-400'
                 } disabled:opacity-50`}
             >
               ▲
@@ -57,8 +57,8 @@ export const PostCard: React.FC<PostCardProps> = ({
               }}
               disabled={isVoting}
               className={`p-2 rounded hover:bg-gray-100 transition-colors ${userVote === 'downvote'
-                  ? 'text-red-500 bg-red-50'
-                  : 'text-gray-400'
+                ? 'text-red-500 bg-red-50'
+                : 'text-gray-400'
                 } disabled:opacity-50`}
             >
               ▼

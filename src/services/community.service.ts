@@ -48,6 +48,10 @@ export class CommunityService {
       const currentPage = filters?.page || 1;
       const pageOffset = (currentPage - 1) * pageSize;
 
+      if (!db) {
+        throw new AppError(500, 'Firebase Firestore is not initialized. Please check your configuration.');
+      }
+
       let q = query(collection(db, FIRESTORE_COLLECTIONS.COMMUNITIES));
 
       // Apply filters

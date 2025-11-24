@@ -27,7 +27,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
   isAuthenticated = true,
 }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+    <div className="glass-card rounded-2xl overflow-hidden">
       {/* Header Background with Gradient */}
       <div className="h-32 bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 relative">
         <div className="absolute inset-0 bg-black opacity-10"></div>

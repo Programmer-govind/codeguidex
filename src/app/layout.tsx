@@ -22,10 +22,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} min-h-screen flex flex-col`}>
         <ReduxProvider>
           <ConditionalHeader />
-          <main className="flex-1">
+          <main className="flex-1 w-full">
             {children}
           </main>
           <ConditionalFooter />

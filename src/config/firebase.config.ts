@@ -13,18 +13,31 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+let app: any = null;
+let auth: any = null;
+let db: any = null;
+let storage: any = null;
 
-// Initialize Firebase services
-const auth = getAuth(app);
+try {
+  if (firebaseConfig.apiKey && firebaseConfig.apiKey !== 'your_firebase_api_key_here') {
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Set auth persistence to local (survives browser restarts)
-setPersistence(auth, browserLocalPersistence).catch((error) => {
-  console.error('Error setting auth persistence:', error);
-});
+    // Initialize Firebase services
+    auth = getAuth(app);
 
-const db = getFirestore(app);
-const storage = getStorage(app);
+    // Set auth persistence to local (survives browser restarts)
+    setPersistence(auth, browserLocalPersistence).catch((error) => {
+      console.error('Error setting auth persistence:', error);
+    });
+
+    db = getFirestore(app);
+    storage = getStorage(app);
+  } else {
+    console.warn('Firebase configuration missing or invalid. Check your .env.local file.');
+  }
+} catch (error) {
+  console.error('Error initializing Firebase:', error);
+}
 
 export { app, auth, db, storage };
 export default app;

@@ -3,9 +3,13 @@
  * Form for editing user profile
  */
 
+'use client';
+
 import { useState } from 'react';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { Badge } from '@/components/common/Badge';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 import type { User } from '@/types/user.types';
 
 interface ProfileEditFormProps {
@@ -84,7 +88,7 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-lg border border-gray-200 p-6">
+    <form onSubmit={handleSubmit} className="space-y-6 glass-card p-6 rounded-lg">
       {error && <ErrorMessage message={error} type="error" />}
 
       {/* Display Name */}
@@ -92,7 +96,7 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Display Name *
         </label>
-        <input
+        <Input
           type="text"
           name="displayName"
           value={formData.displayName}
@@ -100,7 +104,6 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
           placeholder="Your display name"
           required
           disabled={isLoading}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
         />
       </div>
 
@@ -116,7 +119,7 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
           placeholder="Tell us about yourself..."
           rows={4}
           disabled={isLoading}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+          className="form-input"
         />
       </div>
 
@@ -126,7 +129,7 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
           Skills
         </label>
         <div className="flex gap-2 mb-2">
-          <input
+          <Input
             type="text"
             value={skillInput}
             onChange={(e) => setSkillInput(e.target.value)}
@@ -138,9 +141,8 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
             }}
             placeholder="Add a skill..."
             disabled={isLoading || (formData.skills && formData.skills.length >= 20)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
           />
-          <button
+          <Button
             type="button"
             onClick={addSkill}
             disabled={
@@ -148,10 +150,9 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
               (formData.skills && formData.skills.length >= 20) ||
               !skillInput.trim()
             }
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium"
           >
             Add
-          </button>
+          </Button>
         </div>
         <div className="flex flex-wrap gap-2">
           {formData.skills?.map((skill) => (
@@ -172,7 +173,7 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
           Learning Goals
         </label>
         <div className="flex gap-2 mb-2">
-          <input
+          <Input
             type="text"
             value={goalInput}
             onChange={(e) => setGoalInput(e.target.value)}
@@ -184,9 +185,8 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
             }}
             placeholder="Add a learning goal..."
             disabled={isLoading || (formData.learningGoals && formData.learningGoals.length >= 10)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
           />
-          <button
+          <Button
             type="button"
             onClick={addGoal}
             disabled={
@@ -194,10 +194,9 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
               (formData.learningGoals && formData.learningGoals.length >= 10) ||
               !goalInput.trim()
             }
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium"
           >
             Add
-          </button>
+          </Button>
         </div>
         <div className="flex flex-wrap gap-2">
           {formData.learningGoals?.map((goal) => (
@@ -214,22 +213,23 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
 
       {/* Submit Buttons */}
       <div className="flex gap-3 pt-4">
-        <button
+        <Button
           type="submit"
           disabled={isLoading}
-          className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium"
+          className="flex-1"
         >
           {isLoading ? 'Saving...' : 'Save Changes'}
-        </button>
+        </Button>
         {onCancel && (
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={onCancel}
             disabled={isLoading}
-            className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 font-medium"
+            className="flex-1"
           >
             Cancel
-          </button>
+          </Button>
         )}
       </div>
     </form>

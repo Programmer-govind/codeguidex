@@ -82,24 +82,24 @@ export default function CommunitiesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/30 to-purple-50/30 pb-24">
       {/* Hero Header */}
-      <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white py-16 px-4 sm:px-6 lg:px-8 mb-12 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-black opacity-10 rounded-full -ml-10 -mb-10 blur-2xl"></div>
+      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 text-white py-12 px-6 sm:px-8 lg:px-12 mb-16 relative overflow-hidden shadow-xl">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl mix-blend-overlay"></div>
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-black/10 rounded-full -ml-20 -mb-20 blur-3xl mix-blend-overlay"></div>
 
-        <div className="max-w-7xl mx-auto relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="text-center md:text-left">
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
-              Discover Communities
+        <div className="container mx-auto relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="text-center md:text-left max-w-2xl">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 leading-tight">
+              Discover <span className="text-indigo-200">Communities</span>
             </h1>
-            <p className="text-xl text-blue-100 max-w-2xl">
-              Connect with developers, share knowledge, and grow together in specialized communities.
+            <p className="text-base md:text-lg text-indigo-100 leading-relaxed">
+              Connect with developers, share knowledge, and grow together in specialized communities designed for your stack.
             </p>
           </div>
           <button
             onClick={handleCreateCommunity}
-            className="px-8 py-4 bg-white text-blue-600 rounded-xl font-bold text-lg shadow-lg hover:bg-blue-50 hover:scale-105 transition-all duration-200 flex items-center gap-2 whitespace-nowrap"
+            className="px-6 py-3 bg-white text-indigo-600 rounded-xl font-bold text-base shadow-lg hover:bg-indigo-50 hover:scale-105 transition-all duration-300 flex items-center gap-2 whitespace-nowrap"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -109,8 +109,8 @@ export default function CommunitiesPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1">
             <CommunityFilters
@@ -156,7 +156,7 @@ export default function CommunitiesPage() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {communities.map((community) => (
                   <div key={community.id} className="h-full">
                     <CommunityCard
@@ -172,7 +172,7 @@ export default function CommunitiesPage() {
 
             {/* Pagination Info */}
             {communities.length > 0 && (
-              <div className="mt-12 text-center">
+              <div className="mt-16 text-center">
                 <p className="text-gray-500 dark:text-gray-400">
                   Showing <span className="font-semibold text-gray-900 dark:text-white">{communities.length}</span> of <span className="font-semibold text-gray-900 dark:text-white">{totalCommunities}</span> communities
                 </p>

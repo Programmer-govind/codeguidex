@@ -11,10 +11,10 @@ export default function LoginPage() {
     <div className="auth-container">
       <div className="auth-card">
         {/* Header */}
-        <div className="auth-header">
-          <h1 className="auth-title">CodeGuideX</h1>
-          <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
-          <p className="auth-subtitle">
+        <div className="auth-header space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-gradient mb-2">CodeGuideX</h1>
+          <h2 className="text-2xl font-semibold text-slate-800">Welcome Back</h2>
+          <p className="text-slate-500 text-sm">
             Login to continue to your dashboard
           </p>
         </div>
