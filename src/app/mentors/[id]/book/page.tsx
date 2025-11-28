@@ -53,11 +53,25 @@ export default function BookingPage({ params }: BookingPageProps) {
             // Calculate amount
             const amount = (mentor.hourlyRate * data.duration) / 60;
 
-            // Create Payment Intent
+            // Create Payment Intent with booking metadata
             const response = await fetch('/api/create-payment-intent', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount }),
+                body: JSON.stringify({
+                    amount,
+                    metadata: {
+                        userId: user.id,
+                        userName: user.displayName || 'Student',
+                        userEmail: user.email || '',
+                        mentorId: mentor.id,
+                        mentorName: mentor.displayName,
+                        topic: data.topic,
+                        description: data.description,
+                        preferredDate: data.preferredDate,
+                        preferredTime: data.preferredTime,
+                        duration: data.duration.toString(),
+                    },
+                }),
             });
 
             const { clientSecret, error } = await response.json();

@@ -151,6 +151,11 @@ class CommentService {
         // Don't fail the comment creation if notification fails
       }
 
+      // If this is a reply, increment the parent comment's reply count
+      if (commentData.parentCommentId) {
+        await this.incrementReplyCount(communityId, postId, commentData.parentCommentId);
+      }
+
       return newComment;
     } catch (error) {
       console.error('Error creating comment:', error);
@@ -216,8 +221,7 @@ class CommentService {
   async getReplies(
     communityId: string,
     postId: string,
-    parentCommentId: string,
-    pageSize: number = 10
+    parentCommentId: string
   ): Promise<Comment[]> {
     try {
       const commentsRef = collection(
@@ -231,9 +235,7 @@ class CommentService {
 
       const q = query(
         commentsRef,
-        where('parentCommentId', '==', parentCommentId),
-        orderBy('createdAt', 'asc'),
-        limit(pageSize)
+        where('parentCommentId', '==', parentCommentId)
       );
 
       const querySnapshot = await getDocs(q);
@@ -246,6 +248,13 @@ class CommentService {
           communityId,
           ...doc.data(),
         } as Comment);
+      });
+
+      // Sort replies by createdAt in ascending order
+      replies.sort((a, b) => {
+        const aTime = a.createdAt?.toDate?.()?.getTime() || 0;
+        const bTime = b.createdAt?.toDate?.()?.getTime() || 0;
+        return aTime - bTime;
       });
 
       return replies;
@@ -333,10 +342,23 @@ class CommentService {
         commentId
       );
 
+      // Get the comment data first to check if it's a reply
+      const commentSnap = await getDoc(commentRef);
+      if (!commentSnap.exists()) {
+        throw new Error('Comment not found');
+      }
+
+      const commentData = commentSnap.data();
+
       await updateDoc(commentRef, {
         isDeleted: true,
         deletedAt: Timestamp.now(),
       });
+
+      // If this was a reply, decrement the parent comment's reply count
+      if (commentData.parentCommentId) {
+        await this.decrementReplyCount(communityId, postId, commentData.parentCommentId);
+      }
     } catch (error) {
       console.error('Error deleting comment:', error);
       throw new Error('Failed to delete comment');

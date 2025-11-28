@@ -305,6 +305,7 @@ const commentSlice = createSlice({
         state.comments = action.payload.comments;
         state.pagination.lastDoc = action.payload.lastDoc;
         state.pagination.hasMore = !!action.payload.lastDoc;
+        state.error = null;
       })
       .addCase(fetchComments.rejected, (state, action) => {
         state.loading = false;
@@ -320,6 +321,7 @@ const commentSlice = createSlice({
         state.loading = false;
         const { parentCommentId, replies } = action.payload;
         state.replies[parentCommentId] = replies;
+        state.error = null;
       })
       .addCase(fetchReplies.rejected, (state, action) => {
         state.loading = false;
@@ -337,6 +339,17 @@ const commentSlice = createSlice({
         // Add new comment to the beginning if it's a top-level comment
         if (!action.payload.parentCommentId) {
           state.comments.unshift(action.payload);
+        } else {
+          // It's a reply - update parent comment's reply count and add to replies if loaded
+          const parentComment = state.comments.find(c => c.id === action.payload.parentCommentId);
+          if (parentComment) {
+            parentComment.replyCount += 1;
+          }
+          
+          // If replies are loaded for this parent, add the new reply
+          if (state.replies[action.payload.parentCommentId]) {
+            state.replies[action.payload.parentCommentId].push(action.payload);
+          }
         }
       })
       .addCase(createComment.rejected, (state, action) => {
@@ -385,8 +398,43 @@ const commentSlice = createSlice({
       .addCase(upvoteComment.pending, (state) => {
         state.error = null;
       })
-      .addCase(upvoteComment.fulfilled, (state) => {
+      .addCase(upvoteComment.fulfilled, (state, action) => {
         state.error = null;
+        const { commentId, userId } = action.payload;
+        
+        // Update comment in main comments array
+        const commentIndex = state.comments.findIndex(c => c.id === commentId);
+        if (commentIndex !== -1) {
+          const comment = state.comments[commentIndex];
+          // Remove any existing vote first
+          if (comment.userVotes[userId] === 'downvote') {
+            comment.votes.downvotes -= 1;
+            comment.votes.totalVotes += 1;
+          } else if (!comment.userVotes[userId]) {
+            comment.votes.totalVotes += 1;
+          }
+          // Add upvote
+          comment.votes.upvotes += 1;
+          comment.userVotes[userId] = 'upvote';
+        }
+        
+        // Update comment in replies
+        Object.keys(state.replies).forEach(parentId => {
+          const replyIndex = state.replies[parentId].findIndex(c => c.id === commentId);
+          if (replyIndex !== -1) {
+            const comment = state.replies[parentId][replyIndex];
+            // Remove any existing vote first
+            if (comment.userVotes[userId] === 'downvote') {
+              comment.votes.downvotes -= 1;
+              comment.votes.totalVotes += 1;
+            } else if (!comment.userVotes[userId]) {
+              comment.votes.totalVotes += 1;
+            }
+            // Add upvote
+            comment.votes.upvotes += 1;
+            comment.userVotes[userId] = 'upvote';
+          }
+        });
       })
       .addCase(upvoteComment.rejected, (state, action) => {
         state.error = action.payload as string;
@@ -397,8 +445,43 @@ const commentSlice = createSlice({
       .addCase(downvoteComment.pending, (state) => {
         state.error = null;
       })
-      .addCase(downvoteComment.fulfilled, (state) => {
+      .addCase(downvoteComment.fulfilled, (state, action) => {
         state.error = null;
+        const { commentId, userId } = action.payload;
+        
+        // Update comment in main comments array
+        const commentIndex = state.comments.findIndex(c => c.id === commentId);
+        if (commentIndex !== -1) {
+          const comment = state.comments[commentIndex];
+          // Remove any existing vote first
+          if (comment.userVotes[userId] === 'upvote') {
+            comment.votes.upvotes -= 1;
+            comment.votes.totalVotes -= 1;
+          } else if (!comment.userVotes[userId]) {
+            comment.votes.totalVotes -= 1;
+          }
+          // Add downvote
+          comment.votes.downvotes += 1;
+          comment.userVotes[userId] = 'downvote';
+        }
+        
+        // Update comment in replies
+        Object.keys(state.replies).forEach(parentId => {
+          const replyIndex = state.replies[parentId].findIndex(c => c.id === commentId);
+          if (replyIndex !== -1) {
+            const comment = state.replies[parentId][replyIndex];
+            // Remove any existing vote first
+            if (comment.userVotes[userId] === 'upvote') {
+              comment.votes.upvotes -= 1;
+              comment.votes.totalVotes -= 1;
+            } else if (!comment.userVotes[userId]) {
+              comment.votes.totalVotes -= 1;
+            }
+            // Add downvote
+            comment.votes.downvotes += 1;
+            comment.userVotes[userId] = 'downvote';
+          }
+        });
       })
       .addCase(downvoteComment.rejected, (state, action) => {
         state.error = action.payload as string;
@@ -409,8 +492,41 @@ const commentSlice = createSlice({
       .addCase(removeCommentVote.pending, (state) => {
         state.error = null;
       })
-      .addCase(removeCommentVote.fulfilled, (state) => {
+      .addCase(removeCommentVote.fulfilled, (state, action) => {
         state.error = null;
+        const { commentId, userId } = action.payload;
+        
+        // Update comment in main comments array
+        const commentIndex = state.comments.findIndex(c => c.id === commentId);
+        if (commentIndex !== -1) {
+          const comment = state.comments[commentIndex];
+          const existingVote = comment.userVotes[userId];
+          if (existingVote === 'upvote') {
+            comment.votes.upvotes -= 1;
+            comment.votes.totalVotes -= 1;
+          } else if (existingVote === 'downvote') {
+            comment.votes.downvotes -= 1;
+            comment.votes.totalVotes += 1;
+          }
+          delete comment.userVotes[userId];
+        }
+        
+        // Update comment in replies
+        Object.keys(state.replies).forEach(parentId => {
+          const replyIndex = state.replies[parentId].findIndex(c => c.id === commentId);
+          if (replyIndex !== -1) {
+            const comment = state.replies[parentId][replyIndex];
+            const existingVote = comment.userVotes[userId];
+            if (existingVote === 'upvote') {
+              comment.votes.upvotes -= 1;
+              comment.votes.totalVotes -= 1;
+            } else if (existingVote === 'downvote') {
+              comment.votes.downvotes -= 1;
+              comment.votes.totalVotes += 1;
+            }
+            delete comment.userVotes[userId];
+          }
+        });
       })
       .addCase(removeCommentVote.rejected, (state, action) => {
         state.error = action.payload as string;

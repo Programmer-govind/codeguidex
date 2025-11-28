@@ -11,6 +11,7 @@ import {
 import { auth } from '@config/firebase.config';
 import { LoginCredentials, SignupCredentials, AuthResponse, User } from '../types/user.types';
 import { ProfileService } from './profile.service';
+import { ClientEmailService } from './client-email.service';
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -47,6 +48,18 @@ export class AuthService {
 
       // Create user profile in Firestore
       await ProfileService.createProfile(user);
+
+      // Send welcome email
+      try {
+        await ClientEmailService.sendWelcomeEmail(
+          credentials.email,
+          credentials.displayName,
+          credentials.role
+        );
+      } catch (emailError) {
+        console.error('Error sending welcome email:', emailError);
+        // Don't fail signup if email fails
+      }
 
       const token = await userCredential.user.getIdToken();
       const refreshToken = userCredential.user.refreshToken;
@@ -232,7 +245,17 @@ export class AuthService {
     }
 
     try {
+      // Send Firebase password reset email
       await sendPasswordResetEmail(auth, email);
+
+      // Also send a custom branded email
+      try {
+        const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/reset-password`;
+        await ClientEmailService.sendPasswordResetEmail(email, resetLink);
+      } catch (customEmailError) {
+        console.error('Error sending custom password reset email:', customEmailError);
+        // Don't fail if custom email fails - Firebase email was sent
+      }
     } catch (error: any) {
       throw new Error(this.getErrorMessage(error.code));
     }

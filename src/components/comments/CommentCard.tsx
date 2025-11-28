@@ -14,6 +14,10 @@ interface CommentCardProps {
   onDelete?: (commentId: string) => Promise<void>;
   onReply?: (parentCommentId: string, content: string) => Promise<void>;
   onLoadReplies?: (commentId: string) => Promise<void>;
+  onUpvote?: (commentId: string, userId: string) => Promise<void>;
+  onDownvote?: (commentId: string, userId: string) => Promise<void>;
+  onLike?: (commentId: string, userId: string) => Promise<void>;
+  onDislike?: (commentId: string, userId: string) => Promise<void>;
   replies?: Comment[];
   repliesLoading?: boolean;
   showReplies?: boolean;
@@ -27,6 +31,10 @@ export default function CommentCard({
   onDelete,
   onReply,
   onLoadReplies,
+  onUpvote,
+  onDownvote,
+  onLike,
+  onDislike,
   replies = [],
   repliesLoading = false,
   showReplies = false,
@@ -140,6 +148,8 @@ export default function CommentCard({
           votes={comment.votes}
           userVotes={comment.userVotes}
           currentUserId={currentUserId}
+          onLike={onLike || onUpvote}
+          onDislike={onDislike || onDownvote}
         />
 
         <button
@@ -183,6 +193,10 @@ export default function CommentCard({
                 currentUserId={currentUserId}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onUpvote={onUpvote}
+                onDownvote={onDownvote}
+                onLike={onLike}
+                onDislike={onDislike}
               />
             ))
           )}

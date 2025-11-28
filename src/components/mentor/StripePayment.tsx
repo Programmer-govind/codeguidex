@@ -35,6 +35,9 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ amount, onSuccess, onCancel
         const { error, paymentIntent } = await stripe.confirmPayment({
             elements,
             redirect: 'if_required',
+            confirmParams: {
+                return_url: `${window.location.origin}/booking-success`,
+            },
         });
 
         if (error) {

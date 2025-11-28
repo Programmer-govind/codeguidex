@@ -17,6 +17,10 @@ export interface User {
   lastActive: string;
   isSuspended?: boolean;
   suspensionReason?: string;
+  stats?: {
+    postsCount: number;
+    communitiesJoined: number;
+  };
 }
 
 export interface AuthState {

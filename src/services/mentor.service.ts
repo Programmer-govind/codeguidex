@@ -21,6 +21,7 @@ import {
     MentorSession,
     MentorReview,
     MentorVideo,
+    MentorStudent,
 } from '@/types/mentor.types';
 
 const MENTORS_COLLECTION = 'mentors';
@@ -130,23 +131,11 @@ export class MentorService {
      */
     static async getMentors(filters?: MentorFilters): Promise<MentorProfile[]> {
         try {
-            let q = query(collection(db, MENTORS_COLLECTION), orderBy('rating', 'desc'));
-
-            // Apply filters
-            if (filters?.minRating) {
-                q = query(q, where('rating', '>=', filters.minRating));
-            }
-
-            if (filters?.maxHourlyRate) {
-                q = query(q, where('hourlyRate', '<=', filters.maxHourlyRate));
-            }
-
-            if (filters?.specializations && filters.specializations.length > 0) {
-                q = query(q, where('specializations', 'array-contains-any', filters.specializations));
-            }
+            // Simple query - just order by rating, no range filters to avoid index requirement
+            const q = query(collection(db, MENTORS_COLLECTION), orderBy('rating', 'desc'));
 
             const querySnapshot = await getDocs(q);
-            const mentors: MentorProfile[] = [];
+            let mentors: MentorProfile[] = [];
 
             querySnapshot.forEach((doc) => {
                 mentors.push({
@@ -155,15 +144,43 @@ export class MentorService {
                 } as MentorProfile);
             });
 
-            // Apply search filter (client-side)
-            if (filters?.searchQuery) {
-                const searchLower = filters.searchQuery.toLowerCase();
-                return mentors.filter(
-                    (mentor) =>
-                        mentor.displayName.toLowerCase().includes(searchLower) ||
-                        mentor.bio.toLowerCase().includes(searchLower) ||
-                        mentor.skills.some((skill) => skill.name.toLowerCase().includes(searchLower))
-                );
+            // Apply all filters client-side
+            if (filters) {
+                mentors = mentors.filter((mentor) => {
+                    // Filter by minimum rating
+                    if (filters.minRating && mentor.rating < filters.minRating) {
+                        return false;
+                    }
+
+                    // Filter by maximum hourly rate
+                    if (filters.maxHourlyRate && mentor.hourlyRate > filters.maxHourlyRate) {
+                        return false;
+                    }
+
+                    // Filter by specializations
+                    if (filters.specializations && filters.specializations.length > 0) {
+                        const hasSpecialization = filters.specializations.some((spec) =>
+                            mentor.specializations.includes(spec)
+                        );
+                        if (!hasSpecialization) {
+                            return false;
+                        }
+                    }
+
+                    // Filter by search query
+                    if (filters.searchQuery) {
+                        const searchLower = filters.searchQuery.toLowerCase();
+                        const matchesSearch =
+                            mentor.displayName.toLowerCase().includes(searchLower) ||
+                            mentor.bio.toLowerCase().includes(searchLower) ||
+                            mentor.skills.some((skill) => skill.name.toLowerCase().includes(searchLower));
+                        if (!matchesSearch) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                });
             }
 
             return mentors;
@@ -240,13 +257,15 @@ export class MentorService {
     static async getBookings(userId: string, role: 'student' | 'mentor'): Promise<BookingRequest[]> {
         try {
             const field = role === 'student' ? 'studentId' : 'mentorId';
+
+            // Simple query - just filter by userId, sort client-side to avoid index requirement
             const q = query(
                 collection(db, BOOKINGS_COLLECTION),
-                where(field, '==', userId),
-                orderBy('createdAt', 'desc')
+                where(field, '==', userId)
             );
 
             const querySnapshot = await getDocs(q);
+
             const bookings: BookingRequest[] = [];
 
             querySnapshot.forEach((doc) => {
@@ -256,8 +275,16 @@ export class MentorService {
                 } as BookingRequest);
             });
 
+            // Sort by createdAt descending (client-side)
+            bookings.sort((a, b) => {
+                const dateA = new Date(a.createdAt).getTime();
+                const dateB = new Date(b.createdAt).getTime();
+                return dateB - dateA; // Descending order (newest first)
+            });
+
             return bookings;
         } catch (error: any) {
+            console.error(`Failed to get bookings: ${error.message}`);
             throw new Error(`Failed to get bookings: ${error.message}`);
         }
     }
@@ -277,8 +304,13 @@ export class MentorService {
 
             const booking = { id: bookingSnap.id, ...bookingSnap.data() } as BookingRequest;
 
-            // Generate unique video room ID
-            const videoRoomId = `session-${bookingId}-${Date.now()}`;
+            // Generate a secure, random room name for Jitsi
+            // Using crypto random + timestamp makes it virtually impossible to guess
+            const randomString = Math.random().toString(36).substring(2, 15) +
+                Math.random().toString(36).substring(2, 15);
+            const videoRoomId = `CodeGuideX-${bookingId}-${randomString}-${Date.now()}`;
+
+            // The video page URL that users will visit
             const videoRoomUrl = `${process.env.NEXT_PUBLIC_APP_URL}/video/${videoRoomId}`;
 
             const sessionData: Omit<MentorSession, 'id'> = {
@@ -289,8 +321,8 @@ export class MentorService {
                 scheduledDate: booking.preferredDate,
                 scheduledTime: booking.preferredTime,
                 duration: booking.duration,
-                videoRoomId,
-                videoRoomUrl,
+                videoRoomId, // The Jitsi room name
+                videoRoomUrl, // Our app's video page URL
                 status: 'scheduled',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
@@ -342,10 +374,10 @@ export class MentorService {
     static async getSessions(userId: string, role: 'student' | 'mentor'): Promise<MentorSession[]> {
         try {
             const field = role === 'student' ? 'studentId' : 'mentorId';
+            // Simple query - just filter by userId, sort client-side to avoid index requirement
             const q = query(
                 collection(db, SESSIONS_COLLECTION),
-                where(field, '==', userId),
-                orderBy('scheduledDate', 'desc')
+                where(field, '==', userId)
             );
 
             const querySnapshot = await getDocs(q);
@@ -358,8 +390,22 @@ export class MentorService {
                 } as MentorSession);
             });
 
-            return sessions;
+            // Remove duplicates based on bookingId (in case sessions were created multiple times)
+            const uniqueSessions = sessions.filter((session, index, self) => 
+                index === self.findIndex(s => s.bookingId === session.bookingId)
+            );
+
+            // Sort by scheduledDate descending (client-side)
+            uniqueSessions.sort((a, b) => {
+                const dateA = new Date(a.scheduledDate).getTime();
+                const dateB = new Date(b.scheduledDate).getTime();
+                return dateB - dateA; // Descending order (newest first)
+            });
+
+            console.log(`Returning ${uniqueSessions.length} unique sessions (filtered from ${sessions.length})`);
+            return uniqueSessions;
         } catch (error: any) {
+            console.error(`Failed to get sessions: ${error.message}`);
             throw new Error(`Failed to get sessions: ${error.message}`);
         }
     }
@@ -435,10 +481,10 @@ export class MentorService {
      */
     static async getReviews(mentorId: string): Promise<MentorReview[]> {
         try {
+            // Simple query - just filter by mentorId, sort client-side to avoid index requirement
             const q = query(
                 collection(db, REVIEWS_COLLECTION),
-                where('mentorId', '==', mentorId),
-                orderBy('createdAt', 'desc')
+                where('mentorId', '==', mentorId)
             );
 
             const querySnapshot = await getDocs(q);
@@ -449,6 +495,13 @@ export class MentorService {
                     id: doc.id,
                     ...doc.data(),
                 } as MentorReview);
+            });
+
+            // Sort by createdAt descending (client-side)
+            reviews.sort((a, b) => {
+                const dateA = new Date(a.createdAt).getTime();
+                const dateB = new Date(b.createdAt).getTime();
+                return dateB - dateA; // Descending order
             });
 
             return reviews;
@@ -499,10 +552,10 @@ export class MentorService {
      */
     static async getVideos(mentorId: string): Promise<MentorVideo[]> {
         try {
+            // Simple query - just filter by mentorId, sort client-side to avoid index requirement
             const q = query(
                 collection(db, VIDEOS_COLLECTION),
-                where('mentorId', '==', mentorId),
-                orderBy('createdAt', 'desc')
+                where('mentorId', '==', mentorId)
             );
 
             const querySnapshot = await getDocs(q);
@@ -513,6 +566,13 @@ export class MentorService {
                     id: doc.id,
                     ...doc.data(),
                 } as MentorVideo);
+            });
+
+            // Sort by createdAt descending (client-side)
+            videos.sort((a, b) => {
+                const dateA = new Date(a.createdAt).getTime();
+                const dateB = new Date(b.createdAt).getTime();
+                return dateB - dateA; // Descending order (newest first)
             });
 
             return videos;
@@ -538,6 +598,71 @@ export class MentorService {
             }
         } catch (error: any) {
             console.error('Failed to increment video views:', error);
+        }
+    }
+
+    /**
+     * Get students for a mentor
+     */
+    static async getStudents(mentorId: string): Promise<MentorStudent[]> {
+        try {
+            // Get all sessions for this mentor
+            const sessions = await this.getSessions(mentorId, 'mentor');
+            
+            // Get all bookings for this mentor
+            const bookings = await this.getBookings(mentorId, 'mentor');
+
+            // Create a map of student data
+            const studentMap = new Map<string, MentorStudent>();
+
+            // Process sessions to build student data
+            sessions.forEach(session => {
+                const booking = bookings.find(b => b.id === session.bookingId);
+                if (booking) {
+                    const studentId = booking.studentId;
+                    
+                    if (!studentMap.has(studentId)) {
+                        studentMap.set(studentId, {
+                            id: studentId,
+                            name: booking.studentName,
+                            email: booking.studentEmail,
+                            sessionsCompleted: 0,
+                            totalHours: 0,
+                            lastSession: session.scheduledDate,
+                            progress: session.topic,
+                            status: 'active'
+                        });
+                    }
+
+                    const student = studentMap.get(studentId)!;
+                    
+                    // Count completed sessions
+                    if (session.status === 'completed') {
+                        student.sessionsCompleted += 1;
+                        student.totalHours += session.duration / 60; // Convert minutes to hours
+                    }
+
+                    // Update last session date if more recent
+                    if (new Date(session.scheduledDate) > new Date(student.lastSession)) {
+                        student.lastSession = session.scheduledDate;
+                    }
+
+                    // Update status based on recent activity
+                    const lastSessionDate = new Date(student.lastSession);
+                    const thirtyDaysAgo = new Date();
+                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                    
+                    if (lastSessionDate < thirtyDaysAgo) {
+                        student.status = 'inactive';
+                    } else if (student.sessionsCompleted >= 10) {
+                        student.status = 'completed';
+                    }
+                }
+            });
+
+            return Array.from(studentMap.values());
+        } catch (error: any) {
+            throw new Error(`Failed to get students: ${error.message}`);
         }
     }
 }

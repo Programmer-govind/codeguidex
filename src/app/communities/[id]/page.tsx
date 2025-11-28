@@ -69,6 +69,8 @@ export default function CommunityDetailPage({ params }: CommunityDetailPageProps
     try {
       await joinCommunity(user.id, params.id);
       setIsMember(true);
+      // Refetch community to update member count and membership status
+      await fetchCommunity();
     } catch (err) {
       console.error('Failed to join community:', err);
     } finally {
@@ -82,6 +84,8 @@ export default function CommunityDetailPage({ params }: CommunityDetailPageProps
     try {
       await leaveCommunity(user.id, params.id);
       setIsMember(false);
+      // Refetch community to update member count and membership status
+      await fetchCommunity();
     } catch (err) {
       console.error('Failed to leave community:', err);
     } finally {

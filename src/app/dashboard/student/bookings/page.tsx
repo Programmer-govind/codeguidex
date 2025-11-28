@@ -2,144 +2,182 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { MentorService } from '@/services/mentor.service';
 import { BookingRequest } from '@/types/mentor.types';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Badge } from '@/components/common/Badge';
+import { SubNav, STUDENT_DASHBOARD_NAV } from '@/components/navigation/SubNav';
 
 export default function StudentBookingsPage() {
-    const { user } = useAuth();
-    const [bookings, setBookings] = useState<BookingRequest[]>([]);
-    const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const router = useRouter();
+  const [bookings, setBookings] = useState<BookingRequest[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchBookings = async () => {
-            if (!user) return;
-            try {
-                const data = await MentorService.getBookings(user.id, 'student');
-                setBookings(data);
-            } catch (error) {
-                console.error('Failed to fetch bookings:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+  // Protect this route - only students should access
+  useEffect(() => {
+    if (user && user.role !== 'student') {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
-        fetchBookings();
-    }, [user]);
+  useEffect(() => {
+    const fetchBookings = async () => {
+      if (!user || user.role !== 'student') {
+        setLoading(false);
+        return;
+      }
 
-    if (loading) return <LoadingSpinner fullPage message="Loading bookings..." />;
+      try {
+        const data = await MentorService.getBookings(user.id, 'student');
 
+        // Remove duplicates
+        const uniqueBookings = data.filter((booking, index, self) =>
+          index === self.findIndex((b) => (
+            b.mentorId === booking.mentorId &&
+            b.topic === booking.topic &&
+            b.preferredDate === booking.preferredDate &&
+            b.preferredTime === booking.preferredTime
+          ))
+        );
+
+        setBookings(uniqueBookings);
+      } catch (error) {
+        console.error('Failed to fetch bookings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
+  }, [user]);
+
+  if (loading) {
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                    My Bookings
-                </h1>
-
-                {bookings.length > 0 ? (
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead className="bg-gray-50 dark:bg-gray-700/50">
-                                    <tr>
-                                        <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Mentor
-                                        </th>
-                                        <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Topic
-                                        </th>
-                                        <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Date & Time
-                                        </th>
-                                        <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                        <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Action
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    {bookings.map((booking) => (
-                                        <tr key={booking.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-                                                        {booking.mentorName.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <div className="ml-4">
-                                                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                            {booking.mentorName}
-                                                        </div>
-                                                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                            {booking.mentorEmail}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-sm text-gray-900 dark:text-white font-medium">
-                                                    {booking.topic}
-                                                </div>
-                                                <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
-                                                    {booking.description}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900 dark:text-white">
-                                                    {new Date(booking.preferredDate).toLocaleDateString()}
-                                                </div>
-                                                <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                    {booking.preferredTime} ({booking.duration} min)
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <Badge
-                                                    label={booking.status}
-                                                    variant={
-                                                        booking.status === 'confirmed'
-                                                            ? 'success'
-                                                            : booking.status === 'pending'
-                                                                ? 'warning'
-                                                                : 'danger'
-                                                    }
-                                                    size="sm"
-                                                />
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                {booking.status === 'confirmed' && booking.videoRoomId ? (
-                                                    <Link
-                                                        href={`/video/${booking.videoRoomId}`}
-                                                        className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400"
-                                                    >
-                                                        Join Session
-                                                    </Link>
-                                                ) : (
-                                                    <span className="text-gray-400">Wait for confirmation</span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                        <p className="text-gray-500 dark:text-gray-400 mb-4">
-                            You haven't booked any sessions yet.
-                        </p>
-                        <Link
-                            href="/mentors"
-                            className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
-                        >
-                            Find a Mentor
-                        </Link>
-                    </div>
-                )}
-            </div>
-        </div>
+      <div className="w-full h-screen flex items-center justify-center">
+        <LoadingSpinner message="Loading your bookings..." />
+      </div>
     );
+  }
+
+  // Prevent mentors and others from accessing
+  if (user && user.role !== 'student') {
+    return (
+      <div className="section">
+        <div className="section-container">
+          <div className="empty-state card">
+            <div className="empty-state-icon">🚫</div>
+            <h3 className="empty-state-title">Access Denied</h3>
+            <p className="empty-state-description">
+              Only students can view bookings. Please go to your dashboard.
+            </p>
+            <Link href="/dashboard" className="btn-primary mt-4">
+              Go to Dashboard
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="section">
+      <div className="section-container">
+        {/* Navigation Tabs */}
+        <SubNav items={STUDENT_DASHBOARD_NAV} showBorder={true} />
+
+        {/* Header */}
+        <div className="section-header mb-8">
+          <h1>My Mentor Bookings</h1>
+          <p className="section-subtitle">
+            View and manage your mentor booking requests
+          </p>
+        </div>
+
+        {bookings.length > 0 ? (
+          <div className="card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Mentor
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Topic
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Date & Time
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {bookings.map((booking) => (
+                    <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                            {booking.mentorName?.[0] || 'M'}
+                          </div>
+                          <span className="font-medium text-gray-900">
+                            {booking.mentorName || 'Unknown Mentor'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-gray-700">{booking.topic}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-gray-700">
+                          {booking.preferredDate} at {booking.preferredTime}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge
+                          label={booking.status || 'Pending'}
+                          variant={
+                            booking.status === 'confirmed' ? 'success' :
+                            booking.status === 'cancelled' ? 'danger' :
+                            'warning'
+                          }
+                          size="md"
+                        />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Link
+                          href={`/dashboard/student/bookings/${booking.id}`}
+                          className="text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          View
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          <div className="empty-state card">
+            <div className="empty-state-icon">📅</div>
+            <h3 className="empty-state-title">No bookings yet</h3>
+            <p className="empty-state-description">
+              You haven't made any mentor booking requests. Find a mentor to get started.
+            </p>
+            <Link href="/mentors" className="btn-primary mt-4">
+              Find a Mentor
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

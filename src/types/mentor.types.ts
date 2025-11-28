@@ -152,6 +152,17 @@ export interface CreateBookingData {
     duration: number;
 }
 
+export interface MentorStudent {
+    id: string;
+    name: string;
+    email: string;
+    sessionsCompleted: number;
+    totalHours: number;
+    lastSession: string;
+    progress: string;
+    status: 'active' | 'completed' | 'inactive';
+}
+
 export interface MentorFilters {
     specializations?: MentorSpecialization[];
     minRating?: number;

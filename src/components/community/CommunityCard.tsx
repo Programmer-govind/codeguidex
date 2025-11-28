@@ -1,6 +1,6 @@
 /**
- * Community Card Component
- * Displays community information in card format using Tailwind CSS
+ * Community Card Component - Enterprise Level
+ * Displays community information with enhanced styling and spacing
  */
 
 import Link from 'next/link';
@@ -16,6 +16,15 @@ interface CommunityCardProps {
   isAuthenticated?: boolean;
 }
 
+const adjustColor = (color: string, percent: number): string => {
+  const num = parseInt(color.replace('#', ''), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+  const G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
+  const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+  return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+};
+
 export const CommunityCard: React.FC<CommunityCardProps> = ({
   community,
   onJoin,
@@ -25,84 +34,111 @@ export const CommunityCard: React.FC<CommunityCardProps> = ({
   isAuthenticated = true,
 }) => {
   return (
-    <Link href={`/communities/${community.id}`} className="block h-full">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-200 h-full flex flex-col overflow-hidden group hover:-translate-y-1">
-        {/* Card Header with Icon/Color */}
-        <div className="p-6 flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-              {community.name}
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              {community.memberCount.toLocaleString()} members
+    <div className="block h-full relative">
+      <Link href={`/communities/${community.id}`} className="block h-full">
+        <div className="community-card card-interactive">
+          {/* Header Section */}
+          <div className="community-card-header">
+            <div
+              className="community-icon"
+              style={{
+                backgroundColor: community.iconColor || '#3B82F6',
+                background: community.iconColor
+                  ? `linear-gradient(135deg, ${community.iconColor}, ${adjustColor(community.iconColor, -20)})`
+                  : 'linear-gradient(135deg, #3B82F6, #2563EB)',
+              }}
+            >
+              {community.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="community-card-title">
+                {community.name}
+              </h3>
+              <p className="text-xs text-gray-500 font-medium">
+                {community.category}
+              </p>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="community-card-body">
+            <p className="community-card-description line-clamp-3">
+              {community.description}
             </p>
           </div>
-          <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-sm shrink-0"
-            style={{
-              backgroundColor: community.iconColor || '#3B82F6',
-              background: community.iconColor ? `linear-gradient(135deg, ${community.iconColor}, ${adjustColor(community.iconColor, -20)})` : 'linear-gradient(135deg, #3B82F6, #2563EB)'
-            }}
-          >
-            {community.name.charAt(0).toUpperCase()}
+
+          {/* Stats Section */}
+          <div className="community-card-stats">
+            <div className="community-stat">
+              <div className="community-stat-value">
+                {(community.memberCount || 0).toLocaleString()}
+              </div>
+              <div className="community-stat-label">Members</div>
+            </div>
+            <div className="community-stat">
+              <div className="community-stat-value">
+                {(community.stats?.postsCount || 0).toLocaleString()}
+              </div>
+              <div className="community-stat-label">Posts</div>
+            </div>
+            <div className="community-stat">
+              <div className="community-stat-value">
+                {(community.stats?.commentsCount || 0).toLocaleString()}
+              </div>
+              <div className="community-stat-label">Comments</div>
+            </div>
+          </div>
+
+          {/* Footer Section */}
+          <div className="community-card-footer">
+            <Badge
+              label={community.visibility === 'private' ? '🔒 Private' : '🌐 Public'}
+              variant={community.visibility === 'private' ? 'warning' : 'success'}
+              size="md"
+            />
+            {isMember && (
+              <Badge
+                label="✓ Member"
+                variant="success"
+                size="md"
+              />
+            )}
           </div>
         </div>
+      </Link>
 
-        {/* Description */}
-        <div className="px-6 pb-4 flex-1">
-          <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 leading-relaxed">
-            {community.description}
-          </p>
-        </div>
-
-        {/* Badges */}
-        <div className="px-6 pb-4 flex flex-wrap gap-2">
-          <Badge label={community.category} variant="secondary" size="sm" />
-          <Badge
-            label={community.visibility === 'private' ? 'Private' : 'Public'}
-            variant={community.visibility === 'private' ? 'warning' : 'success'}
-            size="sm"
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 mt-auto">
-          {isMember ? (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                onLeave?.(community.id);
-              }}
-              disabled={isLoading}
-              className="w-full py-2 px-4 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 border border-transparent hover:border-red-200 dark:hover:border-red-800 transition-all duration-200 disabled:opacity-50"
-            >
-              {isLoading ? 'Leaving...' : 'Leave Community'}
-            </button>
-          ) : (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                onJoin?.(community.id);
-              }}
-              disabled={isLoading}
-              className={`w-full py-2 px-4 rounded-lg text-sm font-medium text-white shadow-sm transition-all duration-200 disabled:opacity-50 ${!isAuthenticated
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 hover:shadow-md active:transform active:scale-95'
-                }`}
-            >
-              {isLoading ? 'Joining...' : isAuthenticated ? 'Join Community' : 'Login to Join'}
-            </button>
-          )}
-        </div>
+      {/* Action Button - Positioned absolutely over the card */}
+      <div className="absolute bottom-2 left-2 right-2">
+        {isMember ? (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onLeave?.(community.id);
+            }}
+            disabled={isLoading}
+            className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-red-600 hover:bg-red-50 border border-red-200 hover:border-red-300 transition-all duration-200 disabled:opacity-50 hover:shadow-sm"
+          >
+            {isLoading ? '⏳ Leaving...' : '✕ Leave'}
+          </button>
+        ) : (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onJoin?.(community.id);
+            }}
+            disabled={isLoading || !isAuthenticated}
+            className={`w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-white transition-all duration-200 disabled:opacity-50 ${
+              !isAuthenticated
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:shadow-md active:scale-95'
+            }`}
+          >
+            {isLoading ? '⏳ Joining...' : isAuthenticated ? '+ Join' : 'Login to Join'}
+          </button>
+        )}
       </div>
-    </Link>
+    </div>
   );
 };
-
-// Helper to darken color for gradient
-function adjustColor(color: string, amount: number) {
-  return '#' + color.replace(/^#/, '').replace(/../g, color => ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
-}

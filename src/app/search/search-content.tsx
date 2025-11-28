@@ -7,12 +7,19 @@ import { SearchResults } from '@components/search/SearchResults';
 import { SearchBar } from '@components/search/SearchBar';
 import { AdvancedFilters } from '@components/search/AdvancedFilters';
 import { LoadingSpinner } from '@components/common/LoadingSpinner';
-import Header from '@components/common/Header';
 import { SearchFilters } from '@services/search.service';
+import { SubNav } from '@/components/navigation/SubNav';
+
+const SEARCH_NAV = [
+  { label: 'All Results', href: '/search', icon: '🔍' },
+  { label: 'Posts', href: '/posts', icon: '📝' },
+  { label: 'Communities', href: '/communities', icon: '👥' },
+  { label: 'People', href: '/mentors', icon: '👤' },
+];
 
 /**
- * Search Page Content Component
- * Contains all search logic wrapped in Suspense boundary
+ * Search Page Content Component - Enhanced Enterprise Version
+ * Contains all search logic with professional styling and navigation
  */
 export default function SearchPageContent() {
   const searchParams = useSearchParams();
@@ -69,188 +76,182 @@ export default function SearchPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Header showSearch={true} showNotifications={true} showUserMenu={true} />
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <main className="section">
+        <div className="section-container">
+          {/* SubNav - Tabbed Navigation */}
+          <SubNav items={SEARCH_NAV} showBorder={true} />
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Search Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            {initialSearchTerm ? `Search Results for "${initialSearchTerm}"` : 'Search CodeGuideX'}
-          </h1>
+          {/* Search Header */}
+          <div className="section-header mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              {initialSearchTerm ? `Search Results for "${initialSearchTerm}"` : 'Search CodeGuideX'}
+            </h1>
+            <p className="section-subtitle">
+              {initialSearchTerm 
+                ? `Found ${results?.length || 0} results for your search`
+                : 'Discover posts, communities, mentors, and more'}
+            </p>
+          </div>
 
-          {/* Search Bar */}
-          <div className="mb-6">
+          {/* Search Bar - Enhanced */}
+          <div className="mb-8 card-lg">
             <SearchBar
-              placeholder="Search posts, communities, users..."
+              placeholder="Search posts, communities, mentors, skills, topics..."
               onSearchChange={handleSearchChange}
               className="w-full"
             />
           </div>
 
-          {/* Search Controls */}
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            {/* Type Filter */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleTypeChange('post')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  initialSearchType === 'post'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                }`}
-              >
-                Posts
-              </button>
-              <button
-                onClick={() => handleTypeChange('community')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  initialSearchType === 'community'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                }`}
-              >
-                Communities
-              </button>
-              <button
-                onClick={() => handleTypeChange('user')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  initialSearchType === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                }`}
-              >
-                People
-              </button>
+          {/* Search Controls - Redesigned */}
+          <div className="mb-8 space-y-4">
+            {/* Type & Sort Controls */}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              {/* Type Filter Buttons */}
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => handleTypeChange('post')}
+                  className={`filter-button ${initialSearchType === 'post' ? 'filter-button-active' : ''}`}
+                >
+                  📝 Posts
+                </button>
+                <button
+                  onClick={() => handleTypeChange('community')}
+                  className={`filter-button ${initialSearchType === 'community' ? 'filter-button-active' : ''}`}
+                >
+                  👥 Communities
+                </button>
+                <button
+                  onClick={() => handleTypeChange('user')}
+                  className={`filter-button ${initialSearchType === 'user' ? 'filter-button-active' : ''}`}
+                >
+                  👤 People
+                </button>
+              </div>
+
+              {/* Sort & Filter Controls */}
+              <div className="flex gap-2 items-center flex-wrap">
+                <select
+                  value={initialSortBy}
+                  onChange={(e) => handleSortChange(e.target.value as 'relevance' | 'newest' | 'popular')}
+                  className="select-input text-sm"
+                >
+                  <option value="relevance">Most Relevant</option>
+                  <option value="newest">Newest First</option>
+                  <option value="popular">Most Popular</option>
+                </select>
+
+                <button
+                  onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+                  className="md:hidden button-secondary"
+                >
+                  🔧 Filters
+                </button>
+
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="hidden md:inline-flex button-secondary"
+                >
+                  {showFilters ? '✕ Hide Filters' : '🔧 Show Filters'}
+                </button>
+              </div>
             </div>
 
-            {/* Sort & Filter Controls */}
-            <div className="flex gap-2">
-              <select
-                value={initialSortBy}
-                onChange={(e) => handleSortChange(e.target.value as 'relevance' | 'newest' | 'popular')}
-                className="px-3 py-2 rounded-lg border border-gray-300 text-sm bg-white text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-              >
-                <option value="relevance">Most Relevant</option>
-                <option value="newest">Newest</option>
-                <option value="popular">Most Popular</option>
-              </select>
-
-              <button
-                onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-                className="md:hidden px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 text-sm font-medium"
-              >
-                Filters
-              </button>
-
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="hidden md:block px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 text-sm font-medium"
-              >
-                {showFilters ? 'Hide Filters' : 'Show Filters'}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-          {/* Filters Sidebar - Desktop */}
-          {showFilters && (
-            <div className="hidden lg:block lg:col-span-1">
-              <AdvancedFilters onFiltersChange={handleFiltersApply} />
-            </div>
-          )}
-
-          {/* Results */}
-          <div className={showFilters ? 'lg:col-span-3' : 'lg:col-span-4'}>
             {/* Mobile Filters */}
             {mobileFiltersOpen && (
-              <div className="mb-6 md:hidden">
+              <div className="md:hidden card-lg">
                 <AdvancedFilters onFiltersChange={handleFiltersApply} />
               </div>
             )}
+          </div>
 
-            {/* Loading State */}
-            {loading && (
-              <div className="flex items-center justify-center py-12">
-                <LoadingSpinner />
-              </div>
-            )}
-
-            {/* Error State */}
-            {error && !loading && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
-                <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                  {error}
-                </p>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {!loading && !error && results.length === 0 && initialSearchTerm && (
-              <div className="text-center py-12">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-                  No results found
-                </h3>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Try adjusting your search terms or filters
-                </p>
-              </div>
-            )}
-
-            {/* Results List */}
-            {!loading && results.length > 0 && (
-              <>
-                <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                  Found {results.length} result{results.length !== 1 ? 's' : ''} for "{initialSearchTerm}"
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Desktop Filters */}
+            {showFilters && (
+              <div className="hidden md:block">
+                <div className="card-lg sticky top-24">
+                  <div className="card-title mb-4">🔧 Filters</div>
+                  <AdvancedFilters onFiltersChange={handleFiltersApply} />
                 </div>
-                <SearchResults 
-                  results={results}
-                  loading={loading}
-                  error={error}
-                  totalResults={results.length}
-                />
-              </>
-            )}
-
-            {/* No Search Yet */}
-            {!loading && results.length === 0 && !initialSearchTerm && (
-              <div className="text-center py-12">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-                  Start Searching
-                </h3>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Use the search bar above to find posts, communities, and people
-                </p>
               </div>
             )}
+
+            {/* Results Section */}
+            <div className={showFilters ? 'lg:col-span-3' : 'lg:col-span-4'}>
+              {/* Loading State */}
+              {loading && (
+                <div className="card-lg flex items-center justify-center py-16">
+                  <LoadingSpinner />
+                </div>
+              )}
+
+              {/* Error State */}
+              {error && !loading && (
+                <div className="card-lg border-2 border-red-200 bg-red-50 p-6 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">⚠️</span>
+                    <div>
+                      <h3 className="font-semibold text-red-900">Search Error</h3>
+                      <p className="text-red-700">{error}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!loading && !error && initialSearchTerm && (!results || results.length === 0) && (
+                <div className="card-lg border-2 border-blue-200 bg-blue-50 p-12 text-center rounded-lg">
+                  <div className="text-4xl mb-3">🔍</div>
+                  <h3 className="text-xl font-semibold text-blue-900 mb-2">No Results Found</h3>
+                  <p className="text-blue-700 mb-4">
+                    We couldn't find anything matching "{initialSearchTerm}"
+                  </p>
+                  <p className="text-sm text-blue-600">
+                    Try using different keywords, or browse our featured content instead
+                  </p>
+                </div>
+              )}
+
+              {/* No Search State */}
+              {!loading && !error && !initialSearchTerm && (
+                <div className="card-lg border-2 border-gray-200 bg-gray-50 p-12 text-center rounded-lg">
+                  <div className="text-4xl mb-3">🎯</div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Start Searching</h3>
+                  <p className="text-gray-600 mb-4">
+                    Use the search bar above to find posts, communities, and mentors
+                  </p>
+                  <div className="grid grid-cols-3 gap-4 mt-6 text-left">
+                    <div className="p-3 bg-white rounded border">
+                      <span className="text-xl">📝</span> Posts
+                    </div>
+                    <div className="p-3 bg-white rounded border">
+                      <span className="text-xl">👥</span> Communities
+                    </div>
+                    <div className="p-3 bg-white rounded border">
+                      <span className="text-xl">👤</span> Mentors
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Results Display */}
+              {!loading && !error && results && results.length > 0 && (
+                <div>
+                  <div className="mb-4 text-sm text-gray-600">
+                    Showing {results.length} result{results.length !== 1 ? 's' : ''}
+                  </div>
+                  <div className="grid gap-4">
+                    <SearchResults 
+                      results={results} 
+                      loading={loading}
+                      error={error}
+                      totalResults={results.length}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </main>

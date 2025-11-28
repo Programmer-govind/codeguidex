@@ -4,6 +4,8 @@ import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { SubNav, STUDENT_DASHBOARD_NAV, MENTOR_DASHBOARD_NAV, ADMIN_DASHBOARD_NAV } from '@/components/navigation/SubNav';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 function DashboardContent() {
   const { user, logout, isLoading } = useAuth();
@@ -16,6 +18,22 @@ function DashboardContent() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  // Determine which nav items to show based on user role
+  let navItems = STUDENT_DASHBOARD_NAV;
+  if (user?.role === 'mentor') {
+    navItems = MENTOR_DASHBOARD_NAV;
+  } else if (user?.role === 'admin') {
+    navItems = ADMIN_DASHBOARD_NAV;
+  }
+
   const formatJoinedDate = (dateString: string) => {
     const date = new Date(dateString);
     return `Joined ${date.toLocaleDateString('en-US', {
@@ -25,190 +43,130 @@ function DashboardContent() {
   };
 
   return (
-    <div className="min-h-screen bg-secondary-50 dark:bg-secondary-900">
-      {/* Header */}
-      <header className="bg-white/80 dark:bg-secondary-800/80 backdrop-blur-md border-b border-secondary-200 dark:border-secondary-700 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center text-white font-bold shadow-lg">
-              C
-            </div>
-            <span className="font-bold text-xl text-secondary-900 dark:text-white tracking-tight">
-              CodeGuideX
-            </span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/profile"
-              className="text-sm font-medium text-secondary-600 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-            >
-              Edit Profile
-            </Link>
-            <button
-              onClick={handleLogout}
-              disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium text-white bg-secondary-900 dark:bg-secondary-700 rounded-lg hover:bg-secondary-800 dark:hover:bg-secondary-600 transition-all shadow-sm disabled:opacity-50"
-            >
-              {isLoading ? 'Logging out...' : 'Logout'}
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="section">
+      <div className="section-container">
+        {/* Navigation Tabs */}
+        <SubNav items={navItems} showBorder={true} />
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Welcome Section */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary-600 to-purple-600 p-8 md:p-12 text-white shadow-lg">
-          <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-black opacity-10 rounded-full blur-2xl"></div>
-
-          <div className="relative z-10 max-w-3xl">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight text-white drop-shadow-sm">
-              Welcome back, {user?.displayName}! 👋
-            </h1>
-            <p className="text-white/90 text-lg md:text-xl leading-relaxed font-medium drop-shadow-sm">
-              Ready to <span className="font-bold text-white border-b-2 border-white/30 pb-0.5">Learn</span>, <span className="font-bold text-white border-b-2 border-white/30 pb-0.5">Connect</span>, and <span className="font-bold text-white border-b-2 border-white/30 pb-0.5">Grow</span>?
-              Explore communities, engage with posts, and connect with mentors in our vibrant ecosystem.
-            </p>
-          </div>
+        {/* Header */}
+        <div className="section-header mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl">Welcome back, {user?.displayName || 'User'}! 👋</h1>
+          <p className="section-subtitle">
+            {formatJoinedDate((user as any)?.createdAt || user?.joinedDate || new Date().toISOString())}
+          </p>
         </div>
 
-        {/* User Info Card */}
-        <section className="bg-white dark:bg-secondary-800 rounded-2xl border border-secondary-200 dark:border-secondary-700 shadow-soft p-6 md:p-8">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-secondary-900 dark:text-white">Profile Information</h2>
-              <p className="text-sm text-secondary-500 dark:text-secondary-400">Your personal account details</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-4 rounded-xl bg-secondary-50 dark:bg-secondary-700/30 border border-secondary-100 dark:border-secondary-700 hover:border-primary-200 dark:hover:border-primary-800 transition-colors group">
-              <p className="text-xs font-semibold text-secondary-500 uppercase tracking-wider mb-1">Display Name</p>
-              <p className="text-lg font-medium text-secondary-900 dark:text-white group-hover:text-primary-600 transition-colors">{user?.displayName}</p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-secondary-50 dark:bg-secondary-700/30 border border-secondary-100 dark:border-secondary-700 hover:border-primary-200 dark:hover:border-primary-800 transition-colors group">
-              <p className="text-xs font-semibold text-secondary-500 uppercase tracking-wider mb-1">Email Address</p>
-              <p className="text-lg font-medium text-secondary-900 dark:text-white truncate group-hover:text-primary-600 transition-colors">{user?.email}</p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-secondary-50 dark:bg-secondary-700/30 border border-secondary-100 dark:border-secondary-700 hover:border-primary-200 dark:hover:border-primary-800 transition-colors group">
-              <p className="text-xs font-semibold text-secondary-500 uppercase tracking-wider mb-1">Account Role</p>
-              <p className="text-lg font-medium text-secondary-900 dark:text-white capitalize group-hover:text-primary-600 transition-colors">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user?.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                  user?.role === 'mentor' ? 'bg-blue-100 text-blue-800' :
-                    'bg-green-100 text-green-800'
-                  }`}>
-                  {user?.role}
-                </span>
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-secondary-50 dark:bg-secondary-700/30 border border-secondary-100 dark:border-secondary-700 hover:border-primary-200 dark:hover:border-primary-800 transition-colors group">
-              <p className="text-xs font-semibold text-secondary-500 uppercase tracking-wider mb-1">Member Since</p>
-              <p className="text-lg font-medium text-secondary-900 dark:text-white group-hover:text-primary-600 transition-colors">
-                {user?.joinedDate ? formatJoinedDate(user.joinedDate).replace('Joined ', '') : 'N/A'}
-              </p>
+        {/* User Profile Card */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          {/* Profile Card */}
+          <div className="card lg:col-span-2">
+            <div className="flex flex-col sm:flex-row items-start gap-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-xl sm:text-2xl flex-shrink-0">
+                {user?.displayName?.[0] || 'U'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 truncate">
+                  {user?.displayName || user?.email}
+                </h2>
+                <p className="text-gray-600 mb-3 text-sm sm:text-base">{user?.email}</p>
+                <div className="flex flex-wrap gap-2 sm:gap-3">
+                  <span className="px-2 sm:px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs sm:text-sm font-medium capitalize">
+                    {user?.role || 'Student'}
+                  </span>
+                  {user?.isSuspended && (
+                    <span className="px-2 sm:px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs sm:text-sm font-medium">
+                      Suspended
+                    </span>
+                  )}
+                </div>
+              </div>
+              <Link
+                href="/profile"
+                className="w-full sm:w-auto mt-4 sm:mt-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-center text-sm sm:text-base"
+              >
+                Edit Profile
+              </Link>
             </div>
           </div>
-        </section>
+
+          {/* Stats Card */}
+          <div className="card">
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-blue-600 mb-1">
+                {user?.stats?.postsCount || 0}
+              </div>
+              <p className="text-gray-600 text-sm">Posts Created</p>
+            </div>
+            <div className="border-t border-gray-200 mt-4 pt-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600 mb-1">
+                  {user?.stats?.communitiesJoined || 0}
+                </div>
+                <p className="text-gray-600 text-sm">Communities Joined</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Quick Actions */}
-        <section>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-bold text-secondary-900 dark:text-white">Quick Actions</h2>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Link href="/posts" className="card-interactive card text-center hover:border-blue-400">
+            <div className="text-4xl mb-2">📝</div>
+            <h3 className="font-semibold text-gray-900">Browse Posts</h3>
+            <p className="text-sm text-gray-600 mt-1">View all posts</p>
+          </Link>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Link href="/posts" className="group bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 shadow-soft hover:shadow-medium hover:-translate-y-1 transition-all duration-300">
-              <div className="w-14 h-14 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-secondary-900 dark:text-white mb-2 group-hover:text-blue-600 transition-colors">Browse Posts</h3>
-              <p className="text-secondary-500 dark:text-secondary-400 mb-4 line-clamp-2">
-                View latest discussions, ask questions, and interact with the community.
-              </p>
-              <div className="flex items-center text-blue-600 font-medium text-sm">
-                Explore Posts
-                <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
+          <Link href="/communities" className="card-interactive card text-center hover:border-blue-400">
+            <div className="text-4xl mb-2">👥</div>
+            <h3 className="font-semibold text-gray-900">Communities</h3>
+            <p className="text-sm text-gray-600 mt-1">Join communities</p>
+          </Link>
+
+          {user?.role !== 'mentor' && (
+            <Link href="/mentors" className="card-interactive card text-center hover:border-blue-400">
+              <div className="text-4xl mb-2">👨‍🏫</div>
+              <h3 className="font-semibold text-gray-900">Find Mentors</h3>
+              <p className="text-sm text-gray-600 mt-1">Get guidance</p>
+            </Link>
+          )}
+
+          <button
+            onClick={handleLogout}
+            disabled={isLoading}
+            className="card-interactive card text-center hover:border-red-400 transition-all disabled:opacity-50"
+          >
+            <div className="text-4xl mb-2">🚪</div>
+            <h3 className="font-semibold text-gray-900">Logout</h3>
+            <p className="text-sm text-gray-600 mt-1">Sign out</p>
+          </button>
+        </div>
+
+        {/* Recent Activity Section */}
+        <div className="card">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Links</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Link href="/dashboard/communities" className="p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all">
+              <h3 className="font-semibold text-gray-900">My Communities</h3>
+              <p className="text-sm text-gray-600 mt-1">Communities you've joined</p>
             </Link>
 
-            <Link href="/communities" className="group bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 shadow-soft hover:shadow-medium hover:-translate-y-1 transition-all duration-300">
-              <div className="w-14 h-14 bg-green-50 dark:bg-green-900/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-secondary-900 dark:text-white mb-2 group-hover:text-green-600 transition-colors">Join Communities</h3>
-              <p className="text-secondary-500 dark:text-secondary-400 mb-4 line-clamp-2">
-                Find and join topic-based groups to connect with like-minded learners.
-              </p>
-              <div className="flex items-center text-green-600 font-medium text-sm">
-                Find Communities
-                <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
+            <Link href="/dashboard/posts" className="p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all">
+              <h3 className="font-semibold text-gray-900">My Posts</h3>
+              <p className="text-sm text-gray-600 mt-1">Posts you've created</p>
             </Link>
 
-            {user?.role === 'mentor' && (
-              <>
-                <Link href="/dashboard/mentor/bookings" className="group bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 shadow-soft hover:shadow-medium hover:-translate-y-1 transition-all duration-300">
-                  <div className="w-14 h-14 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                    <svg className="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-bold text-secondary-900 dark:text-white mb-2 group-hover:text-purple-600 transition-colors">Mentor Sessions</h3>
-                  <p className="text-secondary-500 dark:text-secondary-400 mb-4 line-clamp-2">
-                    Manage your upcoming bookings and past sessions.
-                  </p>
-                  <div className="flex items-center text-purple-600 font-medium text-sm">
-                    View Bookings
-                    <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </Link>
+            <Link href="/dashboard/bookmarks" className="p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all">
+              <h3 className="font-semibold text-gray-900">Bookmarks</h3>
+              <p className="text-sm text-gray-600 mt-1">Saved content</p>
+            </Link>
 
-                <Link href="/dashboard/mentor/videos" className="group bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 shadow-soft hover:shadow-medium hover:-translate-y-1 transition-all duration-300">
-                  <div className="w-14 h-14 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                    <svg className="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-bold text-secondary-900 dark:text-white mb-2 group-hover:text-red-600 transition-colors">My Videos</h3>
-                  <p className="text-secondary-500 dark:text-secondary-400 mb-4 line-clamp-2">
-                    Upload and manage your tutorial videos for students.
-                  </p>
-                  <div className="flex items-center text-red-600 font-medium text-sm">
-                    Manage Videos
-                    <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </Link>
-              </>
-            )}
+            <Link href="/notifications" className="p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all">
+              <h3 className="font-semibold text-gray-900">Messages</h3>
+              <p className="text-sm text-gray-600 mt-1">Your notifications</p>
+            </Link>
           </div>
-        </section>
-      </main>
+        </div>
+      </div>
     </div>
   );
 }

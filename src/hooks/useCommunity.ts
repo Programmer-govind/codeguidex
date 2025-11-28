@@ -24,7 +24,7 @@ import {
 /**
  * Hook to fetch all communities with filtering and pagination
  */
-export const useFetchCommunities = () => {
+export const useFetchCommunities = (userId?: string) => {
   const dispatch = useDispatch<AppDispatch>();
   const {
     communities,
@@ -47,7 +47,7 @@ export const useFetchCommunities = () => {
         searchTerm: searchTerm || undefined,
         page: currentPage,
         pageSize: pageSize,
-      });
+      }, userId); // Pass userId for privacy filtering
 
       dispatch(setCommunities(result));
     } catch (err) {
@@ -56,7 +56,7 @@ export const useFetchCommunities = () => {
     } finally {
       dispatch(setLoadingCommunities(false));
     }
-  }, [dispatch, selectedCategoryFilter, selectedVisibilityFilter, searchTerm, currentPage, pageSize]);
+  }, [dispatch, selectedCategoryFilter, selectedVisibilityFilter, searchTerm, currentPage, pageSize, userId]);
 
   return {
     communities,

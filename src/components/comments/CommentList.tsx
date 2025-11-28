@@ -17,6 +17,10 @@ interface CommentListProps {
   onDelete?: (commentId: string) => Promise<void>;
   onReply?: (parentCommentId: string, content: string) => Promise<void>;
   onLoadReplies?: (commentId: string) => Promise<void>;
+  onUpvote?: (commentId: string, userId: string) => Promise<void>;
+  onDownvote?: (commentId: string, userId: string) => Promise<void>;
+  onLike?: (commentId: string, userId: string) => Promise<void>;
+  onDislike?: (commentId: string, userId: string) => Promise<void>;
 }
 
 export default function CommentList({
@@ -31,6 +35,10 @@ export default function CommentList({
   onDelete,
   onReply,
   onLoadReplies,
+  onUpvote,
+  onDownvote,
+  onLike,
+  onDislike,
 }: CommentListProps) {
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
   const [loadingReplies, setLoadingReplies] = useState<Set<string>>(new Set());
@@ -91,6 +99,10 @@ export default function CommentList({
           onDelete={onDelete}
           onReply={onReply}
           onLoadReplies={() => handleLoadReplies(comment.id)}
+          onUpvote={onUpvote}
+          onDownvote={onDownvote}
+          onLike={onLike}
+          onDislike={onDislike}
           replies={replies[comment.id] || []}
           repliesLoading={loadingReplies.has(comment.id)}
           showReplies={expandedComments.has(comment.id)}

@@ -1,99 +1,137 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import { MentorService } from '@/services/mentor.service';
 import { MentorProfile, MentorFilters as MentorFiltersType } from '@/types/mentor.types';
 import { MentorCard } from '@/components/mentor/MentorCard';
 import { MentorFilters } from '@/components/mentor/MentorFilters';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { SubNav, MENTORSHIP_NAV_ITEMS } from '@/components/navigation/SubNav';
 
 export default function MentorsPage() {
-    const [mentors, setMentors] = useState<MentorProfile[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState<MentorFiltersType>({
-        maxHourlyRate: 200,
-        minRating: 0,
-        specializations: [],
-        searchQuery: '',
-    });
+  const router = useRouter();
+  const { user } = useAuth();
+  const [mentors, setMentors] = useState<MentorProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<MentorFiltersType>({
+    maxHourlyRate: 200,
+    minRating: 0,
+    specializations: [],
+    searchQuery: '',
+  });
 
-    useEffect(() => {
-        const fetchMentors = async () => {
-            setLoading(true);
-            try {
-                const data = await MentorService.getMentors(filters);
-                setMentors(data);
-            } catch (error) {
-                console.error('Failed to fetch mentors:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+  // Prevent mentors from viewing this page
+  useEffect(() => {
+    if (user && user.role === 'mentor') {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
-        // Debounce search
-        const timeoutId = setTimeout(() => {
-            fetchMentors();
-        }, 500);
+  useEffect(() => {
+    const fetchMentors = async () => {
+      setLoading(true);
+      try {
+        const data = await MentorService.getMentors(filters);
+        setMentors(data);
+      } catch (error) {
+        console.error('Failed to fetch mentors:', error);
+        setMentors([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        return () => clearTimeout(timeoutId);
-    }, [filters]);
+    const timeoutId = setTimeout(() => {
+      fetchMentors();
+    }, 500);
 
+    return () => clearTimeout(timeoutId);
+  }, [filters]);
+
+  // If user is a mentor, show access denied
+  if (user && user.role === 'mentor') {
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                        Find a Mentor
-                    </h1>
-                    <p className="text-gray-600 dark:text-gray-400">
-                        Connect with experienced developers for 1-on-1 guidance and code reviews.
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                    {/* Filters Sidebar */}
-                    <div className="lg:col-span-1">
-                        <MentorFilters filters={filters} onFilterChange={setFilters} />
-                    </div>
-
-                    {/* Mentors Grid */}
-                    <div className="lg:col-span-3">
-                        {loading ? (
-                            <div className="flex justify-center py-12">
-                                <LoadingSpinner message="Finding mentors..." />
-                            </div>
-                        ) : mentors.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {mentors.map((mentor) => (
-                                    <MentorCard key={mentor.id} mentor={mentor} />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                                <svg
-                                    className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={1.5}
-                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                                    />
-                                </svg>
-                                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                                    No mentors found
-                                </h3>
-                                <p className="text-gray-500 dark:text-gray-400">
-                                    Try adjusting your filters or search query to find more mentors.
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
+      <div className="section">
+        <div className="section-container">
+          <div className="empty-state card">
+            <div className="empty-state-icon">👨‍🏫</div>
+            <h3 className="empty-state-title">You're a Mentor!</h3>
+            <p className="empty-state-description">
+              Mentors don't need to find other mentors. Go to your dashboard to manage your profile and students.
+            </p>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="btn-primary mt-4"
+            >
+              Go to Dashboard
+            </button>
+          </div>
         </div>
+      </div>
     );
+  }
+
+  return (
+    <div className="section">
+      <div className="section-container">
+        {/* Navigation Tabs */}
+        <SubNav items={MENTORSHIP_NAV_ITEMS} showBorder={true} />
+
+        {/* Header */}
+        <div className="section-header mb-8">
+          <h1>Find a Mentor</h1>
+          <p className="section-subtitle">
+            Connect with experienced mentors who can guide your learning journey
+          </p>
+        </div>
+
+        {/* Filters Card */}
+        <div className="card mb-8">
+          <MentorFilters
+            onFilterChange={setFilters}
+            filters={filters}
+          />
+        </div>
+
+        {/* Loading State */}
+        {loading ? (
+          <div className="empty-state card">
+            <LoadingSpinner />
+            <p className="empty-state-description">Loading mentors...</p>
+          </div>
+        ) : mentors.length === 0 ? (
+          /* Empty State */
+          <div className="empty-state card">
+            <div className="empty-state-icon">🔍</div>
+            <h3 className="empty-state-title">No mentors found</h3>
+            <p className="empty-state-description">
+              Try adjusting your filters to find mentors that match your needs.
+            </p>
+          </div>
+        ) : (
+          /* Mentors Grid */
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {mentors.map((mentor) => (
+                <MentorCard
+                  key={mentor.id}
+                  mentor={mentor}
+                />
+              ))}
+            </div>
+
+            {/* Results Summary */}
+            <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-gray-700">
+                Found <span className="font-semibold text-blue-900">{mentors.length}</span>
+                {' '}mentor{mentors.length !== 1 ? 's' : ''} matching your criteria
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
 }

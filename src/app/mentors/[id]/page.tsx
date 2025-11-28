@@ -25,11 +25,14 @@ export default function MentorProfilePage({ params }: MentorProfilePageProps) {
     useEffect(() => {
         const fetchMentorData = async () => {
             setLoading(true);
+            console.log('Fetching mentor profile for ID:', params.id);
             try {
                 const [mentorData, reviewsData] = await Promise.all([
                     MentorService.getMentorProfile(params.id),
                     MentorService.getReviews(params.id)
                 ]);
+                console.log('Mentor data:', mentorData);
+                console.log('Reviews data:', reviewsData);
                 setMentor(mentorData);
                 setReviews(reviewsData);
             } catch (err) {

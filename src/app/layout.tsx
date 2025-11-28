@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import './enterprise-ui.css';
 import { ReduxProvider } from './providers';
 import { ConditionalHeader, ConditionalFooter } from '@components/layout/ConditionalLayout';
 

@@ -3,7 +3,7 @@
 * Handles user profile operations including fetching, updating, and profile picture management
 */
 
-import { doc, getDoc, updateDoc, Timestamp, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, Timestamp, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/config/firebase.config';
 import type { User } from '@/types/user.types';
 import { AppError } from '@/utils/errorHandling';
@@ -105,8 +105,18 @@ export class ProfileService {
       if (sanitizedData.updatedAt) sanitizedData.updatedAt = convertTimestamp(sanitizedData.updatedAt);
       if (sanitizedData.createdAt) sanitizedData.createdAt = convertTimestamp(sanitizedData.createdAt);
 
+      // Fetch user stats
+      let stats;
+      try {
+        stats = await this.getUserStats(userId);
+      } catch (error) {
+        console.warn('Failed to fetch user stats:', error);
+        stats = { postsCount: 0, communitiesJoined: 0 };
+      }
+
       return {
         ...sanitizedData,
+        stats,
         // Ensure required fields exist
         joinedDate: sanitizedData.joinedDate || new Date().toISOString(),
         lastActive: sanitizedData.lastActive || new Date().toISOString(),
@@ -488,6 +498,71 @@ export class ProfileService {
       throw new AppError(
         500,
         error instanceof Error ? error.message : 'Failed to update mentor profile'
+      );
+    }
+  }
+
+  /**
+   * Get user statistics (posts count, communities joined, etc.)
+   * @param userId - Firebase Auth UID
+   * @returns Promise with user stats
+   */
+  static async getUserStats(userId: string): Promise<{
+    postsCount: number;
+    communitiesJoined: number;
+  }> {
+    try {
+      if (!userId) {
+        throw new AppError(400, 'User ID is required');
+      }
+
+      // Count user's posts across all communities
+      let postsCount = 0;
+      try {
+        // Get all communities
+        const communitiesRef = collection(db, 'communities');
+        const communitiesSnapshot = await getDocs(communitiesRef);
+        
+        for (const communityDoc of communitiesSnapshot.docs) {
+          const postsRef = collection(db, 'communities', communityDoc.id, 'posts');
+          const postsQuery = query(postsRef, where('authorId', '==', userId));
+          const postsSnapshot = await getDocs(postsQuery);
+          postsCount += postsSnapshot.size;
+        }
+      } catch (error) {
+        console.warn('Error counting posts:', error);
+        postsCount = 0;
+      }
+
+      // Count communities user has joined
+      let communitiesJoined = 0;
+      try {
+        const communitiesRef = collection(db, 'communities');
+        const communitiesSnapshot = await getDocs(communitiesRef);
+        
+        for (const communityDoc of communitiesSnapshot.docs) {
+          const communityData = communityDoc.data();
+          // Check if user is in the members object
+          if (communityData.members && communityData.members[userId]) {
+            communitiesJoined += 1;
+          }
+        }
+      } catch (error) {
+        console.warn('Error counting communities:', error);
+        communitiesJoined = 0;
+      }
+
+      return {
+        postsCount,
+        communitiesJoined,
+      };
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError(
+        500,
+        error instanceof Error ? error.message : 'Failed to fetch user stats'
       );
     }
   }

@@ -17,6 +17,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/config/firebase.config';
 import { FIRESTORE_COLLECTIONS } from '@/config/firestore.collections';
+import { ClientEmailService } from '@/services/client-email.service';
 import type {
   Community,
   CreateCommunityRequest,
@@ -33,6 +34,7 @@ export class CommunityService {
   /**
    * Get all communities with optional filters
    * @param filters - Filter options (category, visibility, searchTerm, page, pageSize)
+   * @param userId - Optional user ID to check membership for private communities
    * @returns Promise<{communities: Community[], total: number}>
    * @throws AppError if fetch fails
    */
@@ -42,7 +44,7 @@ export class CommunityService {
     searchTerm?: string;
     page?: number;
     pageSize?: number;
-  }): Promise<{ communities: Community[]; total: number }> {
+  }, userId?: string): Promise<{ communities: Community[]; total: number }> {
     try {
       const pageSize = filters?.pageSize || 20;
       const currentPage = filters?.page || 1;
@@ -84,6 +86,16 @@ export class CommunityService {
           updatedAt: data.updatedAt?.toDate?.().toISOString() || new Date().toISOString(),
           lastActivityAt: data.lastActivityAt?.toDate?.().toISOString() || new Date().toISOString(),
         } as Community;
+      });
+
+      // Filter private communities - only show if user is a member
+      communities = communities.filter((community) => {
+        if (community.visibility === 'private') {
+          // Show private communities only to members
+          return userId && community.members && community.members[userId];
+        }
+        // Show all public communities
+        return true;
       });
 
       // Apply search term filter (client-side)
@@ -240,6 +252,29 @@ export class CommunityService {
         collection(db, FIRESTORE_COLLECTIONS.COMMUNITIES),
         communityData
       );
+
+      // Send confirmation email to community creator
+      try {
+        // Get creator's profile to get email
+        const userDoc = await getDoc(doc(db, 'users', userId));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          if (userData.email) {
+            await ClientEmailService.sendCommunityCreationConfirmation(
+              userData.email,
+              userName,
+              {
+                name: createData.name.trim(),
+                description: createData.description.trim(),
+                category: createData.category,
+              }
+            );
+          }
+        }
+      } catch (emailError) {
+        console.error('Error sending community creation email:', emailError);
+        // Don't fail community creation if email fails
+      }
 
       return communityRef.id;
     } catch (error) {

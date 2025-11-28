@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useComments } from '@/hooks/useComments';
+import { useCommentVoting } from '@/hooks/useCommentVoting';
+import CommentList from '@/components/comments/CommentList';
 import { PostService } from '@/services/post.service';
 import { CommunityService } from '@/services/community.service';
-import CommentService, { type Comment } from '@/services/comment.service';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { Badge } from '@/components/common/Badge';
@@ -28,8 +30,22 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
   const [commenting, setCommenting] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [userVote, setUserVote] = useState<'upvote' | 'downvote' | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loadingComments, setLoadingComments] = useState(false);
+
+  // Use the comments hook
+  const {
+    comments,
+    replies,
+    loading: loadingComments,
+    error: commentsError,
+    loadComments,
+    loadReplies,
+    addComment,
+    editComment,
+    removeComment,
+  } = useComments(params.id, params.postId);
+
+  // Use the comment voting hook
+  const { handleUpvote, handleDownvote } = useCommentVoting(params.id, params.postId, user?.id || '');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,7 +72,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
         }
 
         // Fetch comments
-        await fetchComments();
+        await loadComments();
       } catch (err) {
         console.error('Failed to fetch post details:', err);
         setError(err instanceof Error ? err.message : 'Failed to load post');
@@ -66,19 +82,9 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
     };
 
     fetchData();
-  }, [params.id, params.postId, user]);
+  }, [params.id, params.postId, user?.id]); // Use user.id instead of user object
 
-  const fetchComments = async () => {
-    setLoadingComments(true);
-    try {
-      const { comments: fetchedComments } = await CommentService.getComments(params.id, params.postId, 50);
-      setComments(fetchedComments);
-    } catch (err) {
-      console.error('Failed to fetch comments:', err);
-    } finally {
-      setLoadingComments(false);
-    }
-  };
+
 
   const handleVote = async (voteType: 'upvote' | 'downvote') => {
     if (!user || !post) {
@@ -108,15 +114,12 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
 
     setCommenting(true);
     try {
-      const newComment = await CommentService.createComment(params.id, params.postId, {
+      await addComment({
         content: commentText,
         authorId: user.id,
         authorName: user.displayName || 'Anonymous',
         authorProfilePicture: user.profilePicture,
       });
-
-      // Add comment to local state
-      setComments(prev => [newComment, ...prev]);
 
       // Update post comment count
       setPost(prev => prev ? { ...prev, comments: { ...prev.comments, count: (prev.comments.count || 0) + 1 } } : prev);
@@ -365,78 +368,43 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
           )}
 
           {/* Comments List */}
-          {loadingComments ? (
-            <div className="text-center py-12">
-              <LoadingSpinner message="Loading comments..." />
-            </div>
-          ) : comments.length > 0 ? (
-            <div className="space-y-6">
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                      {comment.authorName?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        {comment.authorName}
-                      </span>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {comment.createdAt?.toDate?.()?.toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        }) || 'Just now'}
-                      </span>
-                      {comment.isEdited && (
-                        <span className="text-xs text-gray-400 dark:text-gray-500">(edited)</span>
-                      )}
-                    </div>
-                    <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
-                      {comment.content}
-                    </p>
-                    {comment.codeSnippet && (
-                      <div className="mt-3 bg-gray-900 dark:bg-gray-950 rounded-lg p-4 overflow-x-auto">
-                        <pre className="text-sm text-gray-100 font-mono">
-                          <code>{comment.codeSnippet.code}</code>
-                        </pre>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-4 mt-3">
-                      <button className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-                        </svg>
-                        {comment.votes?.upvotes || 0}
-                      </button>
-                      <button className="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.105-1.79l-.05-.025A4 4 0 0011.055 2H5.64a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.44 12H8v4a2 2 0 002 2 1 1 0 001-1v-.667a4 4 0 01.8-2.4l1.4-1.866a4 4 0 00.8-2.4z" />
-                        </svg>
-                        {comment.votes?.downvotes || 0}
-                      </button>
-                      <button className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">
-                        Reply
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <svg className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              <p className="text-gray-500 dark:text-gray-400">
-                No comments yet. Be the first to comment!
-              </p>
-            </div>
-          )}
+          <CommentList
+            comments={comments}
+            replies={replies}
+            currentUserId={user?.id || ''}
+            loading={loadingComments}
+            error={commentsError}
+            onEdit={async (commentId: string, content: string) => {
+              await editComment(commentId, { content });
+            }}
+            onDelete={async (commentId: string) => {
+              await removeComment(commentId);
+            }}
+            onReply={async (parentCommentId: string, content: string) => {
+              await addComment({
+                content,
+                authorId: user?.id || '',
+                authorName: user?.displayName || 'Anonymous',
+                authorProfilePicture: user?.profilePicture,
+                parentCommentId,
+              });
+            }}
+            onLoadReplies={async (commentId: string) => {
+              await loadReplies(commentId);
+            }}
+            onUpvote={async (commentId: string, _userId: string) => {
+              await handleUpvote(commentId);
+            }}
+            onDownvote={async (commentId: string, _userId: string) => {
+              await handleDownvote(commentId);
+            }}
+            onLike={async (commentId: string, _userId: string) => {
+              await handleUpvote(commentId);
+            }}
+            onDislike={async (commentId: string, _userId: string) => {
+              await handleDownvote(commentId);
+            }}
+          />
         </div>
       </div>
     </div>
