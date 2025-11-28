@@ -252,7 +252,25 @@ export class MentorService {
     }
 
     /**
-     * Get bookings for a user (student or mentor)
+     * Update session details
+     */
+    static async updateSession(
+        sessionId: string,
+        updates: Partial<MentorSession>
+    ): Promise<void> {
+        try {
+            const docRef = doc(db, SESSIONS_COLLECTION, sessionId);
+            await updateDoc(docRef, {
+                ...updates,
+                updatedAt: new Date().toISOString(),
+            });
+        } catch (error: any) {
+            throw new Error(`Failed to update session: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get sessions for a user (student or mentor)
      */
     static async getBookings(userId: string, role: 'student' | 'mentor'): Promise<BookingRequest[]> {
         try {
