@@ -159,7 +159,7 @@ export default function MentorSessionsPage() {
                       {session.status === 'scheduled' && (
                         <>
                           <Link
-                            href={session.videoRoomUrl}
+                            href={`/video/${session.videoRoomId}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="button-primary"

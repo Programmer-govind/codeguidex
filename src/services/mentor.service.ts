@@ -329,7 +329,9 @@ export class MentorService {
             const videoRoomId = `CodeGuideX-${bookingId}-${randomString}-${Date.now()}`;
 
             // The video page URL that users will visit
-            const videoRoomUrl = `${process.env.NEXT_PUBLIC_APP_URL}/video/${videoRoomId}`;
+            // Use environment-specific URL or fallback to localhost for development
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+            const videoRoomUrl = `${baseUrl}/video/${videoRoomId}`;
 
             const sessionData: Omit<MentorSession, 'id'> = {
                 bookingId,
