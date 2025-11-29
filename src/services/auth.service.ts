@@ -250,7 +250,7 @@ export class AuthService {
 
       // Also send a custom branded email
       try {
-        const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/reset-password`;
+        const resetLink = `https://codeguidex.vercel.app/auth/reset-password`;
         await ClientEmailService.sendPasswordResetEmail(email, resetLink);
       } catch (customEmailError) {
         console.error('Error sending custom password reset email:', customEmailError);

@@ -329,9 +329,7 @@ export class MentorService {
             const videoRoomId = `CodeGuideX-${bookingId}-${randomString}-${Date.now()}`;
 
             // The video page URL that users will visit
-            // Use environment-specific URL or fallback to localhost for development
-            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-            const videoRoomUrl = `${baseUrl}/video/${videoRoomId}`;
+            const videoRoomUrl = `https://codeguidex.vercel.app/video/${videoRoomId}`;
 
             const sessionData: Omit<MentorSession, 'id'> = {
                 bookingId,
