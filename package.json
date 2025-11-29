@@ -1,7 +1,6 @@
 {
   "name": "codeguidex",
   "version": "1.0.0",
-  "type": "module",
   "description": "CodeGuideX - Beginner-friendly learning platform with mentoring and video sessions",
   "main": "index.js",
   "scripts": {
