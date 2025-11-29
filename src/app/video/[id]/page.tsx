@@ -22,8 +22,6 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
     const router = useRouter();
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [jwtToken, setJwtToken] = useState<string | null>(null);
     const [_api, setApi] = useState<any>(null);
 
     useEffect(() => {
@@ -32,58 +30,22 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
             return;
         }
 
-        // Use hardcoded production JWT token
-        const fallbackToken = process.env.NEXT_PUBLIC_JITSI_JWT;
-        if (fallbackToken) {
-            console.log('Using hardcoded production JWT token');
-            setJwtToken(fallbackToken);
-            setLoading(false);
-        } else {
-            // Fallback to dynamic generation if hardcoded token not available
-            const generateToken = async () => {
-                try {
-                    const response = await fetch('/api/generate-jitsi-token', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            roomName: params.id,
-                            userName: user.displayName || user.email || 'User',
-                            userEmail: user.email || '',
-                            userId: user.id,
-                            avatarUrl: '', // Can be added to User type later if needed
-                            isModerator: user.role === 'mentor', // Only mentors are moderators
-                        }),
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Failed to generate token');
-                    }
-
-                    const { token } = await response.json();
-                    setJwtToken(token);
-                    setLoading(false);
-                } catch (err: any) {
-                    console.error('Failed to generate JWT:', err);
-                    setError(`Failed to initialize video session: ${err.message}`);
-                    setLoading(false);
-                }
-            };
-
-            generateToken();
+        // Initialize Jitsi meeting directly
+        setLoading(false);
+        if (typeof window !== 'undefined' && window.JitsiMeetExternalAPI) {
+            handleJitsiLoad();
         }
     }, [user, params.id, router]);
 
     const handleJitsiLoad = () => {
-        if (!user || !jwtToken) return;
+        if (!user) return;
 
         const appId = process.env.NEXT_PUBLIC_JAAS_APP_ID;
 
-        // Create Jitsi meeting using JaaS with user-specific JWT
+        // Create Jitsi meeting using JaaS
         const api = new window.JitsiMeetExternalAPI('8x8.vc', {
             roomName: `${appId}/${params.id}`,
             parentNode: document.querySelector('#jaas-container'),
-            jwt: jwtToken, // User-specific JWT with their name, email, avatar
             configOverwrite: {
                 startWithAudioMuted: false,
                 startWithVideoMuted: false,
@@ -115,25 +77,6 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
     };
 
     if (loading) return <LoadingSpinner fullPage message="Preparing session..." />;
-
-    if (error) {
-        return (
-            <div className="h-screen w-full bg-gray-900 flex items-center justify-center">
-                <div className="text-center max-w-md px-4">
-                    <p className="text-red-500 mb-4">{error}</p>
-                    <p className="text-gray-400 text-sm mb-4">
-                        Make sure JAAS_PRIVATE_KEY is set in .env.local
-                    </p>
-                    <button
-                        onClick={() => router.push(user?.role === 'mentor' ? '/dashboard/mentor/bookings' : '/dashboard/student/bookings')}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
-                    >
-                        Back to Bookings
-                    </button>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="h-screen w-full bg-gray-900 flex flex-col">

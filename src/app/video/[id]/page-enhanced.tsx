@@ -27,10 +27,7 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [jwtToken, setJwtToken] = useState<string | null>(null);
   const [_api, setApi] = useState<any>(null);
-  const [sessionInfo, setSessionInfo] = useState<any>(null);
 
   useEffect(() => {
     if (!user) {
@@ -38,30 +35,11 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
       return;
     }
 
-    // Use hardcoded production JWT token
-    const fallbackToken = process.env.NEXT_PUBLIC_JITSI_JWT;
-    if (fallbackToken) {
-      console.log('Using hardcoded production JWT token');
-      setJwtToken(fallbackToken);
-      setSessionInfo({
-        roomName: params.id,
-        userName: user.displayName || user.email,
-        isMentor: user.role === 'mentor',
-      });
-      setLoading(false);
-    } else {
-      setError('JWT token not configured');
-      setLoading(false);
-    }
-  }, [user, params.id, router]);
-
-  // Initialize Jitsi Meet
-  useEffect(() => {
-    if (jwtToken && typeof window !== 'undefined' && window.JitsiMeetExternalAPI) {
+    // Initialize Jitsi meeting directly
+    if (typeof window !== 'undefined' && window.JitsiMeetExternalAPI) {
       const domain = 'meet.jit.si';
       const options = {
         roomName: params.id,
-        jwt: jwtToken,
         width: '100%',
         height: '100%',
         parentNode: document.querySelector('#jitsi-container'),
@@ -86,16 +64,12 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
       };
 
       const api = new window.JitsiMeetExternalAPI(domain, options);
+      setApi(api);
 
-      api.addEventListener('videoConferenceJoined', () => {
-        console.log('Video conference joined');
-      });
-
-      api.addEventListener('readyToClose', () => {
+      // Handle when user leaves the meeting
+      api.addEventListener('videoConferenceLeft', () => {
         router.push('/dashboard');
       });
-
-      setApi(api);
 
       return () => {
         if (api) {
@@ -104,7 +78,7 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
       };
     }
     return undefined;
-  }, [jwtToken, params.id, user, router]);
+  }, [user, params.id, router]);
 
   if (loading) {
     return (
@@ -112,24 +86,6 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
         <div className="text-center">
           <LoadingSpinner />
           <p className="mt-4 text-gray-600 font-medium">Initializing video session...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="text-center max-w-md">
-          <div className="text-6xl mb-4">❌</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Session Error</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="btn-primary"
-          >
-            Return to Dashboard
-          </button>
         </div>
       </div>
     );
@@ -150,16 +106,14 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
                 <h1 className="text-2xl font-bold text-gray-900">
                   Live Video Session
                 </h1>
-                {sessionInfo && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    Room: <span className="font-mono font-semibold">{sessionInfo.roomName}</span>
-                    {sessionInfo.isMentor && (
-                      <span className="ml-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        👨‍🏫 Mentor
-                      </span>
-                    )}
-                  </p>
-                )}
+                <p className="text-sm text-gray-500 mt-1">
+                  Room: <span className="font-mono font-semibold">{params.id}</span>
+                  {user?.role === 'mentor' && (
+                    <span className="ml-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      👨‍🏫 Mentor
+                    </span>
+                  )}
+                </p>
               </div>
               <button
                 onClick={() => router.push('/dashboard')}
