@@ -67,8 +67,21 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
         setLoading(false);
       } catch (err) {
         console.error('Error generating token:', err);
-        setError('Failed to start video session');
-        setLoading(false);
+        // Fallback to hardcoded production JWT token if available
+        const fallbackToken = process.env.NEXT_PUBLIC_JITSI_JWT;
+        if (fallbackToken) {
+          console.log('Using fallback JWT token for production');
+          setJwtToken(fallbackToken);
+          setSessionInfo({
+            roomName: params.id,
+            userName: user.displayName || user.email,
+            isMentor: user.role === 'mentor',
+          });
+          setLoading(false);
+        } else {
+          setError('Failed to start video session');
+          setLoading(false);
+        }
       }
     };
 

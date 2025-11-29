@@ -58,8 +58,16 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
                 setLoading(false);
             } catch (err: any) {
                 console.error('Failed to generate JWT:', err);
-                setError(`Failed to initialize video session: ${err.message}`);
-                setLoading(false);
+                // Fallback to hardcoded production JWT token if available
+                const fallbackToken = process.env.NEXT_PUBLIC_JITSI_JWT;
+                if (fallbackToken) {
+                    console.log('Using fallback JWT token for production');
+                    setJwtToken(fallbackToken);
+                    setLoading(false);
+                } else {
+                    setError(`Failed to initialize video session: ${err.message}`);
+                    setLoading(false);
+                }
             }
         };
 
