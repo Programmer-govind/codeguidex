@@ -32,46 +32,46 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
             return;
         }
 
-        // Generate JWT token for this specific user
-        const generateToken = async () => {
-            try {
-                const response = await fetch('/api/generate-jitsi-token', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        roomName: params.id,
-                        userName: user.displayName || user.email || 'User',
-                        userEmail: user.email || '',
-                        userId: user.id,
-                        avatarUrl: '', // Can be added to User type later if needed
-                        isModerator: user.role === 'mentor', // Only mentors are moderators
-                    }),
-                });
+        // Use hardcoded production JWT token
+        const fallbackToken = process.env.NEXT_PUBLIC_JITSI_JWT;
+        if (fallbackToken) {
+            console.log('Using hardcoded production JWT token');
+            setJwtToken(fallbackToken);
+            setLoading(false);
+        } else {
+            // Fallback to dynamic generation if hardcoded token not available
+            const generateToken = async () => {
+                try {
+                    const response = await fetch('/api/generate-jitsi-token', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            roomName: params.id,
+                            userName: user.displayName || user.email || 'User',
+                            userEmail: user.email || '',
+                            userId: user.id,
+                            avatarUrl: '', // Can be added to User type later if needed
+                            isModerator: user.role === 'mentor', // Only mentors are moderators
+                        }),
+                    });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to generate token');
-                }
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to generate token');
+                    }
 
-                const { token } = await response.json();
-                setJwtToken(token);
-                setLoading(false);
-            } catch (err: any) {
-                console.error('Failed to generate JWT:', err);
-                // Fallback to hardcoded production JWT token if available
-                const fallbackToken = process.env.NEXT_PUBLIC_JITSI_JWT;
-                if (fallbackToken) {
-                    console.log('Using fallback JWT token for production');
-                    setJwtToken(fallbackToken);
+                    const { token } = await response.json();
+                    setJwtToken(token);
                     setLoading(false);
-                } else {
+                } catch (err: any) {
+                    console.error('Failed to generate JWT:', err);
                     setError(`Failed to initialize video session: ${err.message}`);
                     setLoading(false);
                 }
-            }
-        };
+            };
 
-        generateToken();
+            generateToken();
+        }
     }, [user, params.id, router]);
 
     const handleJitsiLoad = () => {

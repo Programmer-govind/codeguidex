@@ -49,7 +49,7 @@ export async function POST(request: Request) {
         const token = jwt.sign(payload, privateKey, {
             algorithm: 'RS256',
             header: {
-                kid: `${appId}/750172`, // Updated to use production identifier instead of SAMPLE_APP
+                kid: `${appId}/750172-SAMPLE_APP`, // Use the correct kid format from production token
                 typ: 'JWT',
                 alg: 'RS256',
             },

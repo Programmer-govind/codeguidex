@@ -38,54 +38,21 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
       return;
     }
 
-    // Generate JWT token for this specific user
-    const generateToken = async () => {
-      try {
-        const response = await fetch('/api/generate-jitsi-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            roomName: params.id,
-            userName: user.displayName || user.email || 'User',
-            userEmail: user.email || '',
-            userId: user.id,
-            isModerator: user.role === 'mentor',
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to generate token');
-        }
-
-        const data = await response.json();
-        setJwtToken(data.token);
-        setSessionInfo({
-          roomName: params.id,
-          userName: user.displayName || user.email,
-          isMentor: user.role === 'mentor',
-        });
-        setLoading(false);
-      } catch (err) {
-        console.error('Error generating token:', err);
-        // Fallback to hardcoded production JWT token if available
-        const fallbackToken = process.env.NEXT_PUBLIC_JITSI_JWT;
-        if (fallbackToken) {
-          console.log('Using fallback JWT token for production');
-          setJwtToken(fallbackToken);
-          setSessionInfo({
-            roomName: params.id,
-            userName: user.displayName || user.email,
-            isMentor: user.role === 'mentor',
-          });
-          setLoading(false);
-        } else {
-          setError('Failed to start video session');
-          setLoading(false);
-        }
-      }
-    };
-
-    generateToken();
+    // Use hardcoded production JWT token
+    const fallbackToken = process.env.NEXT_PUBLIC_JITSI_JWT;
+    if (fallbackToken) {
+      console.log('Using hardcoded production JWT token');
+      setJwtToken(fallbackToken);
+      setSessionInfo({
+        roomName: params.id,
+        userName: user.displayName || user.email,
+        isMentor: user.role === 'mentor',
+      });
+      setLoading(false);
+    } else {
+      setError('JWT token not configured');
+      setLoading(false);
+    }
   }, [user, params.id, router]);
 
   // Initialize Jitsi Meet
