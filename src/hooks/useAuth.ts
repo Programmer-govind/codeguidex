@@ -193,6 +193,29 @@ export function useAuth() {
     [dispatch]
   );
 
+  /**
+   * Confirm password reset with token
+   */
+  const confirmPasswordReset = useCallback(
+    async (code: string, newPassword: string) => {
+      dispatch(setLoading(true));
+      dispatch(setError(null));
+
+      try {
+        await AuthService.confirmPasswordReset(code, newPassword);
+        return { success: true };
+      } catch (error: any) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Password reset failed';
+        dispatch(setError(errorMessage));
+        return { success: false, error: errorMessage };
+      } finally {
+        dispatch(setLoading(false));
+      }
+    },
+    [dispatch]
+  );
+
   return {
     ...auth,
     signup,
@@ -201,5 +224,6 @@ export function useAuth() {
     handleGoogleRedirectResult,
     logout,
     resetPassword,
+    confirmPasswordReset,
   };
 }

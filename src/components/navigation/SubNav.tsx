@@ -78,6 +78,7 @@ export const DASHBOARD_NAV_ITEMS: SubNavItem[] = [
 export const STUDENT_DASHBOARD_NAV: SubNavItem[] = [
   { label: 'Overview', href: '/dashboard', icon: '📊' },
   { label: 'My Communities', href: '/dashboard/communities', icon: '👥' },
+  { label: 'My Sessions', href: '/dashboard/student/bookings', icon: '🎥' },
   { label: 'My Learning', href: '/dashboard/learning', icon: '📚' },
   { label: 'Messages', href: '/dashboard/messages', icon: '💬' },
   { label: 'Bookmarks', href: '/dashboard/bookmarks', icon: '🔖' },

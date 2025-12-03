@@ -122,6 +122,14 @@ function DashboardContent() {
             <p className="text-sm text-gray-600 mt-1">Join communities</p>
           </Link>
 
+          {user?.role === 'student' && (
+            <Link href="/dashboard/student/bookings" className="card-interactive card text-center hover:border-blue-400">
+              <div className="text-4xl mb-2">🎥</div>
+              <h3 className="font-semibold text-gray-900">My Sessions</h3>
+              <p className="text-sm text-gray-600 mt-1">View bookings</p>
+            </Link>
+          )}
+
           {user?.role !== 'mentor' && (
             <Link href="/mentors" className="card-interactive card text-center hover:border-blue-400">
               <div className="text-4xl mb-2">👨‍🏫</div>
@@ -154,6 +162,13 @@ function DashboardContent() {
               <h3 className="font-semibold text-gray-900">My Posts</h3>
               <p className="text-sm text-gray-600 mt-1">Posts you've created</p>
             </Link>
+
+            {user?.role === 'student' && (
+              <Link href="/dashboard/student/bookings" className="p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all">
+                <h3 className="font-semibold text-gray-900">My Sessions</h3>
+                <p className="text-sm text-gray-600 mt-1">Booking requests & sessions</p>
+              </Link>
+            )}
 
             <Link href="/dashboard/bookmarks" className="p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all">
               <h3 className="font-semibold text-gray-900">Bookmarks</h3>

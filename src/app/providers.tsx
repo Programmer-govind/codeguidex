@@ -16,27 +16,33 @@ import { ProfileService } from '@/services/profile.service';
  */
 function AuthStateListener() {
   useEffect(() => {
+    console.log('AuthStateListener: Starting auth state listener');
     // Set loading to true when starting auth check
     store.dispatch(setLoading(true));
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('AuthStateListener: Auth state changed, user:', firebaseUser?.email || 'null');
       try {
         if (firebaseUser) {
           // User is signed in
+          console.log('AuthStateListener: User is signed in, getting token...');
           try {
             const token = await firebaseUser.getIdToken();
+            console.log('AuthStateListener: Got token, fetching profile...');
 
             let user;
 
             try {
               user = await ProfileService.getProfile(firebaseUser.uid);
+              console.log('AuthStateListener: Got profile from service');
             } catch (profileError: any) {
               // If profile doesn't exist or fetch fails, use basic info
-              console.warn('User profile not found or fetch failed, using basic info:', profileError.message);
+              console.warn('AuthStateListener: User profile not found, using basic info:', profileError.message);
 
               // For admin users, set the correct role
               const isAdmin = firebaseUser.email === 'admin448@codeguidex.com';
               const userRole: UserRole = isAdmin ? 'admin' : 'student';
+              console.log('AuthStateListener: User role determined:', userRole);
 
               const basicUser = {
                 id: firebaseUser.uid,
@@ -52,33 +58,40 @@ function AuthStateListener() {
 
               // Try to create profile asynchronously (don't block login)
               ProfileService.createProfile(basicUser).catch((createError: any) => {
-                console.warn('Failed to create profile asynchronously:', createError.message);
+                console.warn('AuthStateListener: Failed to create profile asynchronously:', createError.message);
               });
             }
 
+            console.log('AuthStateListener: Dispatching setAuthenticatedUser');
             store.dispatch(setAuthenticatedUser({ user, token }));
           } catch (error) {
-            console.error('Error getting auth token or setting user:', error);
+            console.error('AuthStateListener: Error getting auth token or setting user:', error);
             // Clear auth on critical errors (like token issues)
             store.dispatch(clearAuth());
           }
         } else {
           // User is signed out
+          console.log('AuthStateListener: User is signed out');
           store.dispatch(clearAuth());
         }
       } catch (error) {
-        console.error('Error in auth state listener:', error);
+        console.error('AuthStateListener: Error in auth state listener:', error);
         store.dispatch(clearAuth());
+      } finally {
+        // Ensure loading is set to false after auth check
+        console.log('AuthStateListener: Setting loading to false');
+        store.dispatch(setLoading(false));
       }
     });
 
     // Set a timeout to ensure loading doesn't get stuck
     const timeoutId = setTimeout(() => {
-      console.warn('Auth state listener timeout - forcing loading to false');
+      console.warn('AuthStateListener: Auth state listener timeout - forcing loading to false');
       store.dispatch(setLoading(false));
     }, 10000); // 10 second timeout
 
     return () => {
+      console.log('AuthStateListener: Cleaning up listener');
       unsubscribe();
       clearTimeout(timeoutId);
     };

@@ -7,6 +7,7 @@ import {
   signInWithRedirect,
   getRedirectResult,
   sendPasswordResetEmail,
+  confirmPasswordReset,
 } from 'firebase/auth';
 import { auth } from '@config/firebase.config';
 import { LoginCredentials, SignupCredentials, AuthResponse, User } from '../types/user.types';
@@ -245,8 +246,12 @@ export class AuthService {
     }
 
     try {
-      // Send Firebase password reset email
-      await sendPasswordResetEmail(auth, email);
+      // Send Firebase password reset email with custom action URL
+      const actionCodeSettings = {
+        url: `https://codeguidex.vercel.app/auth/reset-password`,
+        handleCodeInApp: true,
+      };
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
 
       // Also send a custom branded email
       try {
@@ -256,6 +261,18 @@ export class AuthService {
         console.error('Error sending custom password reset email:', customEmailError);
         // Don't fail if custom email fails - Firebase email was sent
       }
+    } catch (error: any) {
+      throw new Error(this.getErrorMessage(error.code));
+    }
+  }
+
+  static async confirmPasswordReset(code: string, newPassword: string): Promise<void> {
+    if (!isFirebaseConfigured()) {
+      throw new Error('Firebase is not properly configured. Please check your environment variables.');
+    }
+
+    try {
+      await confirmPasswordReset(auth, code, newPassword);
     } catch (error: any) {
       throw new Error(this.getErrorMessage(error.code));
     }

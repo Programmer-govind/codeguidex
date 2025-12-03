@@ -287,20 +287,52 @@ export class MentorService {
             const bookings: BookingRequest[] = [];
 
             querySnapshot.forEach((doc) => {
-                bookings.push({
+                const bookingData = {
                     id: doc.id,
                     ...doc.data(),
-                } as BookingRequest);
+                } as BookingRequest;
+                bookings.push(bookingData);
+                console.log('Booking fetched:', {
+                    id: doc.id,
+                    topic: bookingData.topic,
+                    date: bookingData.preferredDate,
+                    time: bookingData.preferredTime,
+                    status: bookingData.status
+                });
             });
 
+            // Remove duplicates using multiple strategies
+            const seenIds = new Set<string>();
+            const seenCombinations = new Set<string>();
+            const uniqueBookings = bookings.filter((booking) => {
+                // Strategy 1: Skip if we've already seen this document ID
+                if (seenIds.has(booking.id)) {
+                    console.log('Duplicate booking ID found:', booking.id);
+                    return false;
+                }
+                seenIds.add(booking.id);
+
+                // Strategy 2: Skip if we've seen this exact combination of fields
+                const combination = `${booking.mentorId}-${booking.studentId}-${booking.topic}-${booking.preferredDate}-${booking.preferredTime}`;
+                if (seenCombinations.has(combination)) {
+                    console.log('Duplicate booking combination found:', combination);
+                    return false;
+                }
+                seenCombinations.add(combination);
+
+                return true;
+            });
+
+            console.log(`Bookings deduplication: ${bookings.length} fetched -> ${uniqueBookings.length} unique`);
+
             // Sort by createdAt descending (client-side)
-            bookings.sort((a, b) => {
+            uniqueBookings.sort((a, b) => {
                 const dateA = new Date(a.createdAt).getTime();
                 const dateB = new Date(b.createdAt).getTime();
                 return dateB - dateA; // Descending order (newest first)
             });
 
-            return bookings;
+            return uniqueBookings;
         } catch (error: any) {
             console.error(`Failed to get bookings: ${error.message}`);
             throw new Error(`Failed to get bookings: ${error.message}`);
@@ -408,10 +440,26 @@ export class MentorService {
                 } as MentorSession);
             });
 
-            // Remove duplicates based on bookingId (in case sessions were created multiple times)
-            const uniqueSessions = sessions.filter((session, index, self) => 
-                index === self.findIndex(s => s.bookingId === session.bookingId)
-            );
+            // Remove duplicates - first by unique document ID, then by unique bookingId
+            const seenIds = new Set<string>();
+            const seenBookingIds = new Set<string>();
+            const uniqueSessions = sessions.filter((session) => {
+                // Skip if we've already seen this document ID
+                if (seenIds.has(session.id)) {
+                    return false;
+                }
+                seenIds.add(session.id);
+
+                // Skip if we've already seen this bookingId
+                if (session.bookingId && seenBookingIds.has(session.bookingId)) {
+                    return false;
+                }
+                if (session.bookingId) {
+                    seenBookingIds.add(session.bookingId);
+                }
+
+                return true;
+            });
 
             // Sort by scheduledDate descending (client-side)
             uniqueSessions.sort((a, b) => {
