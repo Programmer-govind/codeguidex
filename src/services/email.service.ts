@@ -56,8 +56,7 @@ export class EmailService {
         text: options.text || this.stripHtml(options.html),
       };
 
-      const result = await sgMail.send(msg);
-      console.log(`Email sent successfully to ${options.to}: ${result[0]?.headers?.['x-message-id']}`);
+      await sgMail.send(msg);
       return true;
     } catch (error: any) {
       console.error('Failed to send email:', error);

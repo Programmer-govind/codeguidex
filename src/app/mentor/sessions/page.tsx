@@ -40,14 +40,11 @@ export default function MentorSessionsPage() {
       // Get mentor profile to get the correct mentor ID
       const mentorProfile = await MentorService.getMentorProfileByUserId(user.id);
       if (!mentorProfile) {
-        console.log('No mentor profile found for user:', user.id);
         setSessions([]);
         return;
       }
 
-      console.log('Found mentor profile:', mentorProfile);
       const fetchedSessions = await MentorService.getSessions(mentorProfile.id, 'mentor');
-      console.log('Fetched sessions for mentor:', mentorProfile.id, fetchedSessions);
       setSessions(fetchedSessions);
     } catch (error) {
       console.error('Failed to fetch sessions:', error);

@@ -9,6 +9,7 @@ import commentReducer from './slices/commentSlice';
 import notificationReducer from './slices/notificationSlice';
 import searchReducer from './slices/searchSlice';
 import mentorReducer from './slices/mentorSlice';
+import aiReducer from './slices/aiSlice';
 
 export const store = configureStore({
   reducer: {
@@ -21,6 +22,7 @@ export const store = configureStore({
     notifications: notificationReducer,
     search: searchReducer,
     mentor: mentorReducer,
+    ai: aiReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

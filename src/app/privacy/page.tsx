@@ -1,150 +1,158 @@
-import Link from 'next/link';
+"use client"
 
-export const metadata = {
-  title: 'Privacy Policy - CodeGuideX',
-  description: 'Privacy Policy for CodeGuideX platform',
-};
+import Link from "next/link"
+import { motion } from "framer-motion"
+import { Shield, Lock, Eye, FileText, ArrowLeft, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/Button"
 
 export default function PrivacyPolicyPage() {
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  }
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  }
+
+  const sections = [
+    {
+      title: "1. Introduction",
+      icon: Shield,
+      content: "Welcome to CodeGuideX. We are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform."
+    },
+    {
+      title: "2. Information We Collect",
+      icon: Eye,
+      content: "We collect information that you provide directly to us, such as your name, email address, and profile details. We also automatically collect usage data, device information, and IP addresses to improve our services."
+    },
+    {
+      title: "3. How We Use Your Information",
+      icon: Lock,
+      content: "Your data is used to provide and maintain our platform, facilitate connections between students and mentors, and send important updates. We never sell your personal information to third parties."
+    },
+    {
+      title: "4. Data Security",
+      icon: Lock,
+      content: "We implement industry-standard technical and organizational measures to protect your data. While we strive for absolute security, no method of transmission over the internet is 100% secure."
+    }
+  ]
+
   return (
-    <div className="legal-container">
-      {/* Header */}
-      <div className="legal-header">
-        <Link href="/" className="legal-back-link">
-          <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-          </svg>
-          Back to CodeGuideX
-        </Link>
-        <h1 className="legal-title">Privacy Policy</h1>
-        <p className="legal-subtitle">Last updated: November 21, 2025</p>
+    <div className="min-h-screen py-12 md:py-20 px-4">
+      {/* Background Accents */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary/5 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-500/5 blur-[120px]" />
       </div>
 
-      {/* Content */}
-      <div className="legal-content">
-        <section className="legal-section">
-          <h2 className="legal-section-title">1. Introduction</h2>
-          <p className="legal-text">
-            Welcome to CodeGuideX ("we," "our," or "us"). We are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2 className="legal-section-title">2. Information We Collect</h2>
-          <h3 className="legal-subsection-title">2.1 Personal Information</h3>
-          <p className="legal-text mb-4">
-            We may collect personal information that you provide directly to us, including:
-          </p>
-          <ul className="legal-list mb-4">
-            <li>Name and contact information (email address)</li>
-            <li>Profile information (display name, bio, skills)</li>
-            <li>Account credentials (username, password)</li>
-            <li>Communication preferences</li>
-          </ul>
-
-          <h3 className="legal-subsection-title">2.2 Usage Information</h3>
-          <p className="legal-text">
-            We automatically collect certain information about your use of our platform, including:
-          </p>
-          <ul className="legal-list">
-            <li>Device information and browser type</li>
-            <li>IP address and location data</li>
-            <li>Pages visited and time spent on our platform</li>
-            <li>Search queries and interaction data</li>
-          </ul>
-        </section>
-
-        <section className="legal-section">
-          <h2 className="legal-section-title">3. How We Use Your Information</h2>
-          <p className="legal-text mb-4">
-            We use the information we collect for various purposes, including:
-          </p>
-          <ul className="legal-list">
-            <li>Providing and maintaining our platform</li>
-            <li>Creating and managing your account</li>
-            <li>Facilitating connections between students and mentors</li>
-            <li>Sending you important updates and notifications</li>
-            <li>Improving our platform and developing new features</li>
-            <li>Ensuring platform security and preventing fraud</li>
-            <li>Complying with legal obligations</li>
-          </ul>
-        </section>
-
-        <section className="legal-section">
-          <h2 className="legal-section-title">4. Information Sharing</h2>
-          <p className="legal-text mb-4">
-            We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except in the following circumstances:
-          </p>
-          <ul className="legal-list">
-            <li>With service providers who assist us in operating our platform</li>
-            <li>When required by law or to protect our rights</li>
-            <li>In connection with a business transfer or acquisition</li>
-            <li>With your explicit consent</li>
-          </ul>
-        </section>
-
-        <section className="legal-section">
-          <h2 className="legal-section-title">5. Data Security</h2>
-          <p className="legal-text">
-            We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2 className="legal-section-title">6. Your Rights</h2>
-          <p className="legal-text mb-4">
-            Depending on your location, you may have the following rights regarding your personal information:
-          </p>
-          <ul className="legal-list">
-            <li>Access to your personal information</li>
-            <li>Correction of inaccurate information</li>
-            <li>Deletion of your personal information</li>
-            <li>Restriction or objection to processing</li>
-            <li>Data portability</li>
-          </ul>
-        </section>
-
-        <section className="legal-section">
-          <h2 className="legal-section-title">7. Cookies and Tracking</h2>
-          <p className="legal-text">
-            We use cookies and similar technologies to enhance your experience on our platform. You can control cookie settings through your browser preferences, though disabling cookies may affect platform functionality.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2 className="legal-section-title">8. Children's Privacy</h2>
-          <p className="legal-text">
-            Our platform is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If we become aware that we have collected such information, we will take steps to delete it.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2 className="legal-section-title">9. Changes to This Policy</h2>
-          <p className="legal-text">
-            We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the "Last updated" date.
-          </p>
-        </section>
-
-        <section className="legal-section">
-          <h2 className="legal-section-title">10. Contact Us</h2>
-          <p className="legal-text">
-            If you have any questions about this Privacy Policy or our privacy practices, please contact us at:
-          </p>
-          <div className="legal-contact">
-            <p className="legal-text">
-              <strong>Email:</strong> privacy@codeguidex.com<br />
-              <strong>Address:</strong> CodeGuideX Privacy Team
-            </p>
+      <div className="max-w-4xl mx-auto space-y-12">
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex flex-col md:flex-row md:items-center justify-between gap-6"
+        >
+          <div className="space-y-2">
+            <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors group mb-4">
+              <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" /> Back to Home
+            </Link>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Privacy <span className="text-primary">Policy</span></h1>
+            <p className="text-muted-foreground">Last updated: May 16, 2026</p>
           </div>
-        </section>
-      </div>
+          <div className="hidden md:block">
+            <div className="h-20 w-20 rounded-3xl bg-primary/10 flex items-center justify-center border border-primary/20 rotate-3">
+              <Shield className="h-10 w-10 text-primary" />
+            </div>
+          </div>
+        </motion.div>
 
-      {/* Footer */}
-      <div className="legal-footer">
-        <Link href="/" className="legal-footer-link">
-          Return to Home
-        </Link>
+        {/* Core Sections Grid */}
+        <motion.div 
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          {sections.map((section, index) => (
+            <motion.div key={index} variants={item}>
+              <div className="h-full p-6 rounded-2xl bg-background/40 backdrop-blur-md border border-white/10 hover:border-primary/30 transition-all group">
+                <section.icon className="h-8 w-8 text-primary mb-4 group-hover:scale-110 transition-transform" />
+                <h3 className="text-xl font-bold mb-3">{section.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{section.content}</p>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Detailed Content */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="rounded-3xl bg-background/40 backdrop-blur-xl border border-white/10 p-8 md:p-12 shadow-2xl space-y-10"
+        >
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <FileText className="h-4 w-4 text-primary" />
+              </div>
+              5. Information Sharing
+            </h2>
+            <p className="text-muted-foreground leading-relaxed">
+              We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except in the following circumstances:
+            </p>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+              {[
+                "Service providers assisting platform operations",
+                "Compliance with legal obligations",
+                "Business transfers or acquisitions",
+                "Explicit user-granted consent"
+              ].map((text, i) => (
+                <li key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 text-sm">
+                  <ChevronRight className="h-4 w-4 text-primary shrink-0" /> {text}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Lock className="h-4 w-4 text-primary" />
+              </div>
+              6. Your Rights
+            </h2>
+            <p className="text-muted-foreground leading-relaxed">
+              Depending on your location, you have rights regarding access, correction, deletion, and portability of your data. You can exercise these rights through your account settings or by contacting our support team.
+            </p>
+          </section>
+
+          <section className="p-8 rounded-2xl bg-primary/5 border border-primary/10 text-center space-y-4">
+            <h2 className="text-2xl font-bold">Have questions?</h2>
+            <p className="text-muted-foreground">Our privacy team is here to help you understand how we protect your data.</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+              <Button className="bg-primary hover:bg-primary/90 text-white px-8 rounded-full">
+                Contact Privacy Team
+              </Button>
+              <a href="mailto:privacy@codeguidex.com" className="text-sm font-medium hover:text-primary transition-colors">
+                privacy@codeguidex.com
+              </a>
+            </div>
+          </section>
+        </motion.div>
+
+        {/* Footer Link */}
+        <div className="text-center pt-8">
+          <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+            Read our Terms of Service instead?
+          </Link>
+        </div>
       </div>
     </div>
-  );
+  )
 }

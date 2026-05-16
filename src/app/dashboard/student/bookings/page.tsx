@@ -32,19 +32,14 @@ export default function StudentBookingsPage() {
       }
 
       try {
-        // Fetch bookings (already deduplicated by service)
         const bookingsData = await MentorService.getBookings(user.id, 'student');
-        console.log('Fetched bookings for student:', user.id, bookingsData.length);
         setBookings(bookingsData);
 
-        // Fetch sessions (already deduplicated by service)
         try {
           const sessionsData = await MentorService.getSessions(user.id, 'student');
-          console.log('Fetched sessions for student:', user.id, sessionsData.length);
           setSessions(sessionsData);
         } catch (error) {
           console.error('Failed to fetch sessions:', error);
-          // Continue even if sessions fetch fails
         }
       } catch (error) {
         console.error('Failed to fetch bookings:', error);

@@ -1,7 +1,7 @@
 /**
  * SubNavigation Component
- * Tabbed navigation for role-based sections
- * Used in Dashboard, Communities, and other main sections
+ * Tabbed navigation for role-based sections.
+ * Tabs are layout-stable: active/inactive state only changes colour, never size.
  */
 
 'use client';
@@ -30,31 +30,40 @@ export const SubNav: React.FC<SubNavProps> = ({
   const pathname = usePathname() ?? '';
 
   return (
-    <nav className={`${showBorder ? 'border-b border-gray-200' : ''} bg-white mb-6 rounded-lg ${className}`}>
-      <div className="flex overflow-x-auto gap-0 -mx-6 px-6 lg:gap-0 lg:mx-0 lg:px-0">
+    <nav
+      className={`sticky top-0 z-20 bg-white dark:bg-background shrink-0 ${
+        showBorder ? 'border-b border-gray-200 dark:border-border' : ''
+      } mb-6 rounded-lg ${className}`}
+    >
+      {/* Scrollable wrapper — height never changes */}
+      <div className="flex overflow-x-auto">
         {items.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+          // Root-level tabs need exact match; child tabs use prefix match
+          const isExactRoot = ['/dashboard', '/admin', '/communities', '/posts', '/mentors'].includes(item.href);
+          const isActive = pathname === item.href || (!isExactRoot && pathname.startsWith(item.href + '/'));
 
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`
-                px-4 py-4 text-sm font-medium whitespace-nowrap
-                transition-all duration-200 ease-out
-                border-b-2 -mb-px
-                flex items-center gap-2
-                ${
-                  isActive
-                    ? 'border-blue-600 text-blue-600 bg-blue-50/50'
-                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
-                }
-              `}
+              className={[
+                // Fixed height — identical for active and inactive, so no layout shift
+                'inline-flex items-center gap-2 whitespace-nowrap',
+                'h-12 px-4 text-sm font-medium',
+                'transition-colors duration-150',
+                // Border always present; only colour changes (no size change)
+                'border-b-2',
+                isActive
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300 dark:text-muted-foreground dark:hover:text-foreground',
+              ].join(' ')}
             >
-              {item.icon && <span className="text-lg">{item.icon}</span>}
+              {item.icon && (
+                <span className="text-base leading-none">{item.icon}</span>
+              )}
               <span>{item.label}</span>
               {item.badge && (
-                <span className="ml-2 inline-flex items-center justify-center min-w-[20px] h-5 px-2 text-xs font-bold text-white bg-red-500 rounded-full">
+                <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 text-[10px] font-bold text-white bg-red-500 rounded-full leading-none">
                   {item.badge}
                 </span>
               )}
@@ -66,7 +75,7 @@ export const SubNav: React.FC<SubNavProps> = ({
   );
 };
 
-// Pre-configured nav items for different sections
+// ─── Pre-configured nav items for different sections ───────────────────────────
 
 export const DASHBOARD_NAV_ITEMS: SubNavItem[] = [
   { label: 'Overview', href: '/dashboard', icon: '📊' },

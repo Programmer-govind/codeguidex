@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useFetchCommunities, useCommunityFilters, useCommunityMembership } from '@/hooks/useCommunity';
@@ -23,9 +23,16 @@ export default function CommunitiesPage() {
   const [searchTerm, setSearchTermLocal] = useState('');
   const [joiningId, setJoiningId] = useState<string | null>(null);
 
+  // Guard: only fetch once on mount — fetchCommunities recreates on every render
+  // which causes an infinite loop if used directly in useEffect deps
+  const hasFetched = useRef(false);
   useEffect(() => {
-    fetchCommunities();
-  }, [fetchCommunities]);
+    if (!hasFetched.current) {
+      hasFetched.current = true;
+      fetchCommunities();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCategoryChange = (category: string | null) => {
     setSelectedCategory(category);

@@ -1,137 +1,381 @@
-'use client';
+"use client"
 
-import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import Link from "next/link"
+import { Button } from "@/components/ui/Button"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card"
+import { Input } from "@/components/ui/Input"
+import { Badge } from "@/components/ui/Badge"
+import {
+  ArrowRight, MessageSquare, ArrowUp, Sparkles, Terminal, Rocket,
+  Search, TrendingUp, Flame, PlayCircle, Star, Calendar,
+} from "lucide-react"
+import { motion } from "framer-motion"
 
 export default function Home() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
+  const feedPosts = [
+    { title: "Best architecture for Next.js 14 App Router?", author: "alex_dev", upvotes: 342, comments: 89, tags: ["Next.js", "Architecture"] },
+    { title: "How to handle global state in 2024? Zustand vs Redux", author: "sarah_codes", upvotes: 215, comments: 142, tags: ["React", "State Management"] },
+  ]
 
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.push('/dashboard');
-    }
-  }, [isAuthenticated, isLoading, router]);
+  const trendingTopics = [
+    { name: "React Compiler", posts: "2.4k", icon: Flame, color: "text-orange-500" },
+    { name: "Next.js 15 RC", posts: "1.8k", icon: Rocket, color: "text-blue-500" },
+    { name: "Tailwind v4", posts: "950", icon: Sparkles, color: "text-teal-500" },
+    { name: "Cursor AI", posts: "3.2k", icon: Terminal, color: "text-purple-500" },
+  ]
 
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  const suggestedMentors = [
+    { name: "Sarah Drasner", role: "VP Engineering", rating: 5.0, tags: ["Vue", "Architecture"] },
+    { name: "Dan Abramov", role: "Software Engineer", rating: 4.9, tags: ["React", "JavaScript"] },
+    { name: "Theo Browne", role: "CEO & Founder", rating: 4.8, tags: ["Next.js", "T3 Stack"] },
+  ]
 
-  // If not authenticated, show the landing page
-  if (!isAuthenticated) {
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        {/* Hero Section */}
-        <section className="py-section px-section">
-          <div className="content-wrapper">
-            {/* Main Content */}
-            <div className="text-center space-y-xl max-w-5xl mx-auto">
-              {/* Title */}
-              <div className="space-y-lg">
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight">
-                  <span className="text-gradient">CodeGuideX</span>
-                </h1>
-                <p className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-900">
-                  Learn, Connect, Grow
-                </p>
+  return (
+    <div className="flex flex-col gap-16">
+      {/* ── HERO SECTION ── */}
+      <section className="relative text-center space-y-8 pt-12 lg:pt-20">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="inline-block">
+          <Badge variant="outline" className="px-4 py-1.5 rounded-full border-primary/30 bg-primary/5 text-primary text-sm font-medium backdrop-blur-md">
+            <Sparkles className="h-4 w-4 mr-2 inline-block" />
+            CodeGuideX 2.0 is now live
+          </Badge>
+        </motion.div>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
+          className="text-5xl md:text-7xl font-bold tracking-tight max-w-4xl mx-auto leading-tight"
+        >
+          Master Coding with <br className="hidden md:block"/>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-cyan-400">
+            support and mentorship
+          </span>
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
+          className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto"
+        >
+          The ultimate AI-powered developer platform to generate ideas, connect with elite communities, and get 1-on-1 coding guidance.
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
+        >
+          <Link href="/auth/signup" className="w-full sm:w-auto">
+            <Button size="lg" className="h-14 px-8 text-lg rounded-full bg-gradient-to-r from-primary to-purple-600 hover:shadow-[0_0_30px_rgba(124,58,237,0.5)] transition-all border-0 text-white w-full">
+              Get started free <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
+          <Link href="/mentors" className="w-full sm:w-auto">
+            <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full backdrop-blur-md bg-background/30 hover:bg-background/50 border-white/10 w-full">
+              Browse Mentors
+            </Button>
+          </Link>
+        </motion.div>
+
+        {/* Social proof */}
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.5 }}
+          className="flex items-center justify-center gap-6 pt-2 flex-wrap"
+        >
+          {["10,000+ Developers", "500+ Mentors", "4.9★ Rating"].map((stat) => (
+            <span key={stat} className="text-sm text-muted-foreground font-medium flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary/60 inline-block" />{stat}
+            </span>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* ── FEATURES BENTO GRID ── */}
+      <section className="py-12 mt-8">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">Everything you need to level up</h2>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+            CodeGuideX provides a complete ecosystem designed to accelerate your learning and help you build better software, faster.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          {/* AI Assistant — spans 2 cols */}
+          <Card className="md:col-span-2 bg-background/40 backdrop-blur-md border-white/5 hover:border-primary/50 transition-all duration-500 group overflow-hidden relative min-h-[320px]">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-30 group-hover:opacity-100 transition-opacity duration-500 overflow-hidden hidden md:block">
+              <div className="absolute right-[-10%] top-[10%] w-[120%] h-[80%] rounded-xl border border-white/10 bg-background/80 shadow-2xl flex flex-col p-4 transform rotate-3 group-hover:rotate-0 transition-transform duration-700">
+                <div className="flex gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-full bg-primary/20" />
+                  <div className="w-3/4 h-8 rounded-lg bg-white/5" />
+                </div>
+                <div className="flex gap-2 justify-end mb-4">
+                  <div className="w-1/2 h-16 rounded-lg bg-primary/10 border border-primary/20" />
+                </div>
+                <div className="w-full h-10 mt-auto rounded-lg bg-white/5 border border-white/10" />
               </div>
-
-              {/* Subtitle */}
-              <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                A beginner-friendly platform to post doubts, join communities, interact with mentors, and attend live video sessions.
+            </div>
+            <div className="relative z-10 p-8 pb-0 md:w-1/2">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner border border-primary/20">
+                <Sparkles className="h-7 w-7 text-primary" />
+              </div>
+              <CardTitle className="text-2xl font-bold mb-3">AI Code Assistant</CardTitle>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                Generate production-ready code, debug complex issues, and get architecture suggestions — all powered by Gemini 2.5.
               </p>
+              <Link href="/ai">
+                <Button variant="outline" size="sm" className="rounded-full border-primary/30 text-primary hover:bg-primary/10">
+                  Try AI Studio <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </Card>
 
-              {/* Features */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-8 max-w-4xl mx-auto">
-                <div className="flex items-center gap-4 text-gray-700 bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-soft hover:shadow-md-soft transition-all duration-300">
-                  <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <span className="text-lg font-medium">Ask & Answer Questions</span>
-                </div>
-                <div className="flex items-center gap-4 text-gray-700 bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-soft hover:shadow-md-soft transition-all duration-300">
-                  <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <span className="text-lg font-medium">Join Communities</span>
-                </div>
-                <div className="flex items-center gap-4 text-gray-700 bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-soft hover:shadow-md-soft transition-all duration-300">
-                  <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <span className="text-lg font-medium">Connect with Mentors</span>
-                </div>
-                <div className="flex items-center gap-4 text-gray-700 bg-white/60 backdrop-blur-sm rounded-xl p-6 shadow-soft hover:shadow-md-soft transition-all duration-300">
-                  <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <span className="text-lg font-medium">Live Video Sessions</span>
-                </div>
+          {/* Mentorship */}
+          <Card className="bg-background/40 backdrop-blur-md border-white/5 hover:border-purple-500/50 transition-all duration-500 group overflow-hidden relative min-h-[320px] flex flex-col">
+            <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.1),transparent_50%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative z-10 p-8 flex-1">
+              <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner border border-purple-500/20">
+                <Star className="h-7 w-7 text-purple-500" />
               </div>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-6 justify-center pt-xl">
-                <a
-                  href="/auth/login"
-                  className="btn-primary px-10 py-4 sm:px-12 sm:py-5 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                >
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 1a1 1 0 011-1h12a1 1 0 011 1H3zm0 4a1 1 0 011-1h12a1 1 0 011 1H3zm0 4a1 1 0 011-1h12a1 1 0 011 1H3zm0 4a1 1 0 011-1h12a1 1 0 011 1H3z" clipRule="evenodd" />
-                  </svg>
-                  Login to Your Account
-                </a>
-                <a
-                  href="/auth/signup"
-                  className="btn-outline px-10 py-4 sm:px-12 sm:py-5 text-lg font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
-                >
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                    <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0015.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
-                  </svg>
-                  Create New Account
-                </a>
+              <CardTitle className="text-2xl font-bold mb-3">1-on-1 Mentorship</CardTitle>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Connect with verified senior engineers. Book sessions, get code reviews, and fast-track your career.
+              </p>
+            </div>
+            <div className="relative h-24 overflow-hidden w-full px-6 pb-6 flex flex-col gap-2">
+              <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-3 py-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shrink-0 flex items-center justify-center text-white text-xs font-bold">S</div>
+                <div className="text-xs text-muted-foreground">Sarah Drasner • VP Engineering • <span className="text-yellow-500">★ 5.0</span></div>
+              </div>
+              <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-3 py-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 shrink-0 flex items-center justify-center text-white text-xs font-bold">D</div>
+                <div className="text-xs text-muted-foreground">Dan Abramov • React Core • <span className="text-yellow-500">★ 4.9</span></div>
               </div>
             </div>
-          </div>
-        </section>
+          </Card>
 
-        {/* Stats Section */}
-        <section className="bg-white border-t border-b border-gray-200 py-section px-section">
-          <div className="content-wrapper">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 max-w-4xl mx-auto">
-              <div className="text-center group">
-                <div className="text-5xl sm:text-6xl font-bold text-blue-600 mb-4 group-hover:scale-110 transition-transform duration-300">10K+</div>
-                <p className="text-lg text-gray-600 font-medium">Active Members</p>
+          {/* Community */}
+          <Card className="bg-background/40 backdrop-blur-md border-white/5 hover:border-cyan-500/50 transition-all duration-500 group overflow-hidden relative min-h-[280px] flex flex-col">
+            <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(6,182,212,0.1),transparent_50%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative z-10 p-8 pb-0">
+              <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner border border-cyan-500/20">
+                <MessageSquare className="h-7 w-7 text-cyan-500" />
               </div>
-              <div className="text-center group">
-                <div className="text-5xl sm:text-6xl font-bold text-blue-600 mb-4 group-hover:scale-110 transition-transform duration-300">5K+</div>
-                <p className="text-lg text-gray-600 font-medium">Questions Answered</p>
+              <CardTitle className="text-2xl font-bold mb-3">Vibrant Community</CardTitle>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Join specialized discussion boards, share projects, and collaborate globally.
+              </p>
+            </div>
+            <div className="relative h-32 mt-4 overflow-hidden w-full px-6 opacity-40 group-hover:opacity-100 transition-opacity duration-500 flex flex-col gap-3 pb-4">
+              <div className="w-3/4 h-10 rounded-2xl rounded-tl-sm bg-white/5 border border-white/10 self-start" />
+              <div className="w-2/3 h-10 rounded-2xl rounded-tr-sm bg-cyan-500/10 border border-cyan-500/20 self-end" />
+            </div>
+          </Card>
+
+          {/* Resources — spans 2 cols */}
+          <Card className="md:col-span-2 bg-background/40 backdrop-blur-md border-white/5 hover:border-orange-500/50 transition-all duration-500 group overflow-hidden relative min-h-[280px] flex flex-col md:flex-row">
+            <div className="absolute inset-0 bg-gradient-to-tl from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative z-10 flex flex-col justify-center p-8 md:w-1/2 h-full order-2 md:order-1">
+              <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-inner border border-orange-500/20">
+                <Rocket className="h-7 w-7 text-orange-500" />
               </div>
-              <div className="text-center group">
-                <div className="text-5xl sm:text-6xl font-bold text-blue-600 mb-4 group-hover:scale-110 transition-transform duration-300">500+</div>
-                <p className="text-lg text-gray-600 font-medium">Active Communities</p>
+              <CardTitle className="text-3xl font-bold mb-4">Premium Resources</CardTitle>
+              <p className="text-base text-muted-foreground leading-relaxed">
+                Access a massive curated library of high-quality templates, video tutorials, and deep-dive technical architecture articles.
+              </p>
+            </div>
+            <div className="w-full md:w-1/2 h-48 md:h-full relative opacity-50 group-hover:opacity-100 transition-opacity duration-500 order-1 md:order-2 flex items-center justify-center p-8">
+              <div className="w-full h-full max-h-[200px] rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-600/20 border border-white/10 shadow-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
+                <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center">
+                  <PlayCircle className="h-8 w-8 text-white ml-1" />
+                </div>
               </div>
             </div>
-          </div>
-        </section>
-      </main>
-    );
-  }
+          </Card>
+        </div>
+      </section>
 
-  // This should not be reached due to the redirect, but just in case
-  return null;
+      {/* ── SUGGESTED MENTORS ── */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold tracking-tight">Suggested Mentors</h2>
+          <Link href="/mentors">
+            <Button variant="ghost" className="text-primary">View All <ArrowRight className="ml-2 h-4 w-4" /></Button>
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {suggestedMentors.map((mentor, i) => (
+            <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }}>
+              <Card className="group overflow-hidden">
+                <CardHeader className="flex flex-row gap-4 items-start pb-2">
+                  <div className="h-14 w-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold shadow-md shrink-0 group-hover:scale-110 transition-transform">
+                    {mentor.name.charAt(0)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-lg truncate">{mentor.name}</CardTitle>
+                    <CardDescription className="text-sm mt-0.5 truncate">{mentor.role}</CardDescription>
+                    <div className="flex items-center text-xs font-medium mt-1">
+                      <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500 mr-1" />
+                      {mentor.rating}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pb-3 pt-1">
+                  <div className="flex flex-wrap gap-2">
+                    {mentor.tags.map(tag => <Badge key={tag} variant="secondary" className="bg-muted text-xs px-2 py-0.5">{tag}</Badge>)}
+                  </div>
+                </CardContent>
+                <CardFooter className="pt-2 border-t border-white/5 bg-muted/10">
+                  <Link href="/mentors" className="w-full">
+                    <Button variant="ghost" size="sm" className="w-full text-xs hover:bg-primary hover:text-white transition-colors">
+                      <Calendar className="mr-2 h-3.5 w-3.5" /> Book Session
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── TWO COLUMN LAYOUT: Feed + Sidebar ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-12">
+
+        {/* LEFT: Feed + AI Tool */}
+        <div className="lg:col-span-3 space-y-16">
+
+          {/* Community Feed */}
+          <section className="space-y-6">
+            <h2 className="text-2xl font-bold tracking-tight">Community Feed</h2>
+            <div className="space-y-4">
+              {feedPosts.map((post, i) => (
+                <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}>
+                  <Card className="cursor-pointer group">
+                    <div className="flex flex-col sm:flex-row">
+                      <div className="flex sm:flex-col items-center sm:p-4 p-2 sm:bg-muted/10 bg-transparent rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none border-b sm:border-b-0 sm:border-r border-white/5 gap-2 sm:gap-0">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary"><ArrowUp className="h-5 w-5" /></Button>
+                        <span className="font-bold text-sm sm:my-1">{post.upvotes}</span>
+                      </div>
+                      <div className="flex-1 p-4 sm:p-5">
+                        <div className="flex items-center text-xs text-muted-foreground mb-2">
+                          <span className="font-medium text-foreground hover:text-primary transition-colors">@{post.author}</span>
+                          <span className="mx-2">•</span> 2 hours ago
+                        </div>
+                        <h3 className="text-xl font-semibold group-hover:text-primary transition-colors leading-snug">{post.title}</h3>
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          {post.tags.map(tag => <Badge key={tag} variant="secondary" className="bg-muted/50 border-white/5">{tag}</Badge>)}
+                          <div className="ml-auto flex items-center text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                            <MessageSquare className="h-4 w-4 mr-1.5" /> {post.comments}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+
+          {/* AI Tool CTA */}
+          <section className="space-y-6">
+            <h2 className="text-2xl font-bold tracking-tight">AI Code Assistant</h2>
+            <Card className="overflow-hidden border-primary/20 shadow-[0_0_30px_rgba(79,70,229,0.1)]">
+              <div className="h-2 bg-gradient-to-r from-primary via-purple-500 to-cyan-400" />
+              <CardContent className="p-6 md:p-8 flex flex-col items-center justify-center text-center space-y-6 bg-gradient-to-b from-background/50 to-muted/20">
+                <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center ring-1 ring-primary/20 shadow-inner">
+                  <Terminal className="h-8 w-8 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-bold">What are you building today?</h3>
+                  <p className="text-muted-foreground max-w-lg mx-auto">Describe your idea, and our AI will generate starter code, suggest architectures, and guide you step-by-step.</p>
+                </div>
+                <div className="w-full max-w-xl relative group">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500" />
+                  <div className="relative flex w-full items-center">
+                    <Search className="absolute left-4 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      className="w-full h-14 pl-12 pr-32 rounded-xl border-white/10 bg-background/80 backdrop-blur-md focus-visible:ring-primary shadow-inner text-base"
+                      placeholder="e.g. Create a Next.js landing page..."
+                      readOnly
+                    />
+                    <Link href="/auth/login" className="absolute right-1.5 h-11">
+                      <Button className="h-full rounded-lg bg-primary hover:bg-primary/90 text-white font-medium px-6">
+                        Generate
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        </div>
+
+        {/* RIGHT: Trending Topics Sidebar */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-24 space-y-6">
+            <Card className="bg-background/40">
+              <CardHeader className="pb-3 border-b border-white/5">
+                <CardTitle className="text-lg flex items-center">
+                  <TrendingUp className="mr-2 h-5 w-5 text-primary" /> Trending Topics
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4 space-y-4">
+                {trendingTopics.map((topic, i) => (
+                  <div key={i} className="flex items-center justify-between group cursor-pointer p-2 -mx-2 rounded-lg hover:bg-white/5 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-md bg-muted/50 group-hover:bg-background transition-colors ${topic.color}`}>
+                        <topic.icon className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{topic.name}</p>
+                        <p className="text-xs text-muted-foreground">{topic.posts} posts</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* CTA Card */}
+            <Card className="bg-gradient-to-br from-primary/10 to-purple-600/10 border-primary/20">
+              <CardContent className="pt-6 pb-6 text-center space-y-4">
+                <div className="h-12 w-12 rounded-xl bg-primary/20 mx-auto flex items-center justify-center">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base">Join the Community</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Connect with 10,000+ developers today.</p>
+                </div>
+                <Link href="/auth/signup" className="block">
+                  <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-white rounded-full">
+                    Sign up free
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* ── FOOTER CTA ── */}
+      <section className="text-center py-20 space-y-6 border-t border-white/5 mt-8">
+        <h2 className="text-4xl md:text-5xl font-bold tracking-tight max-w-2xl mx-auto">
+          Ready to accelerate your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">developer journey</span>?
+        </h2>
+        <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+          Join thousands of developers who are learning faster, building better, and growing their careers with CodeGuideX.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+          <Link href="/auth/signup">
+            <Button size="lg" className="h-14 px-10 text-lg rounded-full bg-gradient-to-r from-primary to-purple-600 hover:shadow-[0_0_30px_rgba(124,58,237,0.5)] transition-all border-0 text-white">
+              Get started — it&apos;s free <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
+          <Link href="/pricing">
+            <Button size="lg" variant="outline" className="h-14 px-10 text-lg rounded-full backdrop-blur-md bg-background/30 hover:bg-background/50 border-white/10">
+              View Pricing
+            </Button>
+          </Link>
+        </div>
+      </section>
+    </div>
+  )
 }

@@ -49,7 +49,6 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
     useEffect(() => {
         return () => {
             if (api) {
-                console.log('Cleaning up Jitsi API');
                 api.dispose();
             }
         };
@@ -57,7 +56,6 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
 
     const handleJitsiLoad = () => {
         if (!user || isInitialized.current) {
-            console.log('Jitsi already initialized or user not ready');
             return;
         }
 
@@ -76,7 +74,6 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
 
             // If JWT token is available, use JaaS with authentication
             if (jwtToken) {
-                console.log('Using JaaS with JWT authentication');
                 const api = new window.JitsiMeetExternalAPI('8x8.vc', {
                     roomName: `${appId}/${params.id}`,
                     parentNode: document.querySelector('#jaas-container'),
@@ -110,8 +107,6 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
                     }
                 });
             } else {
-                // Fallback to free Jitsi Meet without authentication
-                console.log('JWT not available, using free Jitsi Meet');
                 const api = new window.JitsiMeetExternalAPI('meet.jit.si', {
                     roomName: `codeguidex-${params.id}`,
                     parentNode: document.querySelector('#jaas-container'),
@@ -182,10 +177,7 @@ export default function VideoSessionPage({ params }: VideoSessionPageProps) {
                         ? `https://8x8.vc/${process.env.NEXT_PUBLIC_JAAS_APP_ID}/external_api.js`
                         : "https://meet.jit.si/external_api.js"
                 }
-                onLoad={() => {
-                    console.log('Jitsi script loaded');
-                    setScriptLoaded(true);
-                }}
+                onLoad={() => setScriptLoaded(true)}
                 strategy="afterInteractive"
             />
 

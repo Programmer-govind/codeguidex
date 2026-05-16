@@ -1,35 +1,53 @@
-import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import type { Metadata } from 'next';
+import { Inter, Outfit } from 'next/font/google';
+import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { ReduxProvider } from '@/app/providers';
 import './globals.css';
-import './enterprise-ui.css';
-import { ReduxProvider } from './providers';
-import { ConditionalHeader, ConditionalFooter } from '@components/layout/ConditionalLayout';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({
+  variable: '--font-inter',
+  subsets: ['latin'],
+  display: 'swap',
+});
+
+const outfit = Outfit({
+  variable: '--font-outfit',
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
-  title: 'CodeGuideX - Learn, Connect, Grow',
+  title: 'CodeGuideX — Learn, Connect, Grow',
   description:
-    'A beginner-friendly platform to post doubts, join communities, interact with mentors, and attend live video sessions.',
-  keywords: ['learning', 'mentoring', 'community', 'video sessions', 'coding'],
-  robots: 'index, follow',
+    'AI-powered developer platform to generate code ideas, connect with tech communities, and get personalized mentorship from industry experts.',
+  keywords: ['coding', 'mentorship', 'AI', 'developer community', 'programming', 'learning'],
+  openGraph: {
+    title: 'CodeGuideX',
+    description: 'AI-powered developer learning platform',
+    type: 'website',
+  },
 };
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${inter.variable} ${outfit.variable} font-sans antialiased bg-background text-foreground`}
+        suppressHydrationWarning
+      >
         <ReduxProvider>
-          <ConditionalHeader />
-          <main className="flex-1">
-            {children}
-          </main>
-          <ConditionalFooter />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            storageKey="codeguidex-theme"
+            disableTransitionOnChange
+          >
+            <MainLayout>{children}</MainLayout>
+          </ThemeProvider>
         </ReduxProvider>
       </body>
     </html>

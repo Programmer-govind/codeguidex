@@ -429,10 +429,9 @@ export class SearchService {
   /**
    * Track search query for analytics/history
    */
-  static async trackSearch(_userId: string, searchTerm: string, resultsCount: number): Promise<void> {
+  static async trackSearch(_userId: string, _searchTerm: string, _resultsCount: number): Promise<void> {
     try {
-      // This would typically be stored in a searchHistory collection
-      console.log(`Search tracked: "${searchTerm}" (${resultsCount} results)`);
+      // TODO: Store search analytics in Firestore searchHistory collection
     } catch (error) {
       console.error('Error tracking search:', error);
     }

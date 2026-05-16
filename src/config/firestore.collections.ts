@@ -17,6 +17,16 @@ export const FIRESTORE_COLLECTIONS = {
 
   // Admin collections
   REPORTS: 'reports',
+
+  // AI collections (NEW — 8th semester)
+  AI_CONVERSATIONS: 'aiConversations',
+
+  // Bookmarks (NEW — 8th semester)
+  BOOKMARKS: 'bookmarks',
+
+  // Chat rooms (NEW — 8th semester)
+  CHAT_ROOMS: 'chatRooms',
+  CHAT_MESSAGES: 'chatMessages',
 } as const;
 
 export const FIRESTORE_PATHS = {

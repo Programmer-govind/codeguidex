@@ -11,21 +11,17 @@ export default function AdminLoginPage() {
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    console.log('AdminLoginPage: Auth state -', { isAuthenticated, isLoading, userRole: user?.role });
-
-    if (!isLoading && isAuthenticated && user?.role === 'admin') {
-      console.log('AdminLoginPage: Redirecting admin to /admin');
-      router.push('/admin');
-    } else if (!isLoading && isAuthenticated && user?.role !== 'admin') {
-      console.log('AdminLoginPage: Redirecting non-admin to /unauthorized');
-      router.push('/unauthorized');
+    if (isLoading) return;
+    if (isAuthenticated && user?.role === 'admin') {
+      router.replace('/admin');
+    } else if (isAuthenticated) {
+      router.replace('/unauthorized');
     }
-  }, [isAuthenticated, isLoading, user?.role]); // Removed router from dependencies
+  }, [isAuthenticated, isLoading, user?.role, router]);
 
   // If still loading after 5 seconds, show the form anyway to prevent infinite loading
   useEffect(() => {
     const timer = setTimeout(() => {
-      console.log('AdminLoginPage: Loading timeout reached, showing form');
       setShowForm(true);
     }, 5000); // 5 second timeout
 

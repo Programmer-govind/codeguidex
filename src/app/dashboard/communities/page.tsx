@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFetchCommunities, useCommunityMembership } from '@/hooks/useCommunity';
 import { useAuth } from '@/hooks/useAuth';
 import { SubNav } from '@/components/navigation/SubNav';
@@ -15,17 +15,19 @@ export default function MyCommunitiesPage() {
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [leavingId, setLeavingId] = useState<string | null>(null);
 
+  const hasFetched = useRef(false);
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user && !hasFetched.current) {
+      hasFetched.current = true;
       fetchCommunities();
     }
-  }, [fetchCommunities, isAuthenticated, user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user?.id]);
 
   const handleJoinCommunity = async (communityId: string) => {
     if (!isAuthenticated || !user) return;
     setJoiningId(communityId);
     try {
-      console.log('Joining community from dashboard:', communityId);
       await joinCommunity(user.id, communityId);
       // Refetch communities to update the list
       setTimeout(async () => {
@@ -42,7 +44,6 @@ export default function MyCommunitiesPage() {
     if (!user) return;
     setLeavingId(communityId);
     try {
-      console.log('Leaving community from dashboard:', communityId);
       await leaveCommunity(user.id, communityId);
       // Refetch communities to update the list
       setTimeout(async () => {
@@ -60,12 +61,6 @@ export default function MyCommunitiesPage() {
     community.members && typeof community.members === 'object' && user?.id && user.id in community.members
   );
 
-  console.log('Dashboard My Communities:', {
-    userId: user?.id,
-    totalCommunities: communities.length,
-    myCommunitiesCount: myCommunities.length,
-    myCommunities: myCommunities.map(c => ({ name: c.name, id: c.id }))
-  });
 
   if (isLoading) {
     return (

@@ -287,18 +287,7 @@ export class MentorService {
             const bookings: BookingRequest[] = [];
 
             querySnapshot.forEach((doc) => {
-                const bookingData = {
-                    id: doc.id,
-                    ...doc.data(),
-                } as BookingRequest;
-                bookings.push(bookingData);
-                console.log('Booking fetched:', {
-                    id: doc.id,
-                    topic: bookingData.topic,
-                    date: bookingData.preferredDate,
-                    time: bookingData.preferredTime,
-                    status: bookingData.status
-                });
+                bookings.push({ id: doc.id, ...doc.data() } as BookingRequest);
             });
 
             // Remove duplicates using multiple strategies
@@ -307,7 +296,6 @@ export class MentorService {
             const uniqueBookings = bookings.filter((booking) => {
                 // Strategy 1: Skip if we've already seen this document ID
                 if (seenIds.has(booking.id)) {
-                    console.log('Duplicate booking ID found:', booking.id);
                     return false;
                 }
                 seenIds.add(booking.id);
@@ -315,7 +303,6 @@ export class MentorService {
                 // Strategy 2: Skip if we've seen this exact combination of fields
                 const combination = `${booking.mentorId}-${booking.studentId}-${booking.topic}-${booking.preferredDate}-${booking.preferredTime}`;
                 if (seenCombinations.has(combination)) {
-                    console.log('Duplicate booking combination found:', combination);
                     return false;
                 }
                 seenCombinations.add(combination);
@@ -323,7 +310,6 @@ export class MentorService {
                 return true;
             });
 
-            console.log(`Bookings deduplication: ${bookings.length} fetched -> ${uniqueBookings.length} unique`);
 
             // Sort by createdAt descending (client-side)
             uniqueBookings.sort((a, b) => {
@@ -468,7 +454,6 @@ export class MentorService {
                 return dateB - dateA; // Descending order (newest first)
             });
 
-            console.log(`Returning ${uniqueSessions.length} unique sessions (filtered from ${sessions.length})`);
             return uniqueSessions;
         } catch (error: any) {
             console.error(`Failed to get sessions: ${error.message}`);

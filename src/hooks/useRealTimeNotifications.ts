@@ -2,9 +2,9 @@
 
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { collection, query, where, onSnapshot, Unsubscribe } from 'firebase/firestore';
-import { db } from '@config/firebase.config';
+import { db } from '@/config/firebase.config';
 import { useNotifications } from './useNotifications';
-import { Notification } from '@services/notification.service';
+import { Notification } from '@/services/notification.service';
 
 export interface UseRealTimeNotificationsReturn {
   isListening: boolean;
@@ -20,8 +20,16 @@ export function useRealTimeNotifications(
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
   const [isListening, setIsListening] = useState(false);
 
+  // Stable ref for the callback so it doesn't cause re-subscriptions
+  // when the parent component re-renders and creates a new callback reference.
+  const onNewNotificationRef = useRef(onNewNotification);
+  useEffect(() => {
+    onNewNotificationRef.current = onNewNotification;
+  }, [onNewNotification]);
+
   const startListening = useCallback(() => {
-    if (!userId || isListening) return;
+    // Guard: don't start if already listening or no user
+    if (!userId || unsubscribeRef.current) return;
 
     setIsListening(true);
 
@@ -43,9 +51,9 @@ export function useRealTimeNotifications(
               // Add to Redux store
               addNotification(notification);
 
-              // Call optional callback
-              if (onNewNotification) {
-                onNewNotification(notification);
+              // Use ref to call the latest callback without re-subscribing
+              if (onNewNotificationRef.current) {
+                onNewNotificationRef.current(notification);
               }
 
               // Refresh unread count
@@ -55,14 +63,17 @@ export function useRealTimeNotifications(
         },
         (error) => {
           console.error('Error listening to notifications:', error);
+          unsubscribeRef.current = null;
           setIsListening(false);
         }
       );
     } catch (error) {
       console.error('Error setting up notification listener:', error);
+      unsubscribeRef.current = null;
       setIsListening(false);
     }
-  }, [userId, isListening, addNotification, loadUnreadCount, onNewNotification]);
+  // Only re-create startListening if userId changes — NOT onNewNotification
+  }, [userId, addNotification, loadUnreadCount]);
 
   const stopListening = useCallback(() => {
     if (unsubscribeRef.current) {

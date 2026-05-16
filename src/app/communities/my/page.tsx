@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useFetchCommunities, useCommunityMembership } from '@/hooks/useCommunity';
@@ -10,7 +10,6 @@ import { SubNav, COMMUNITIES_NAV_ITEMS } from '@/components/navigation/SubNav';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 export default function MyCommunitiesPage() {
-  console.log('🚀 MY COMMUNITIES PAGE (/communities/my) - Rendering - URL:', typeof window !== 'undefined' ? window.location.href : 'SSR');
 
   const router = useRouter();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -19,16 +18,18 @@ export default function MyCommunitiesPage() {
 
   const [leavingId, setLeavingId] = useState<string | null>(null);
 
+  const hasFetched = useRef(false);
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.replace('/auth/login');
       return;
     }
-
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user && !hasFetched.current) {
+      hasFetched.current = true;
       fetchCommunities();
     }
-  }, [isAuthenticated, authLoading, user, fetchCommunities, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, isAuthenticated, user?.id]);
 
   const handleLeaveCommunity = async (communityId: string) => {
     if (!user) return;
@@ -61,16 +62,9 @@ export default function MyCommunitiesPage() {
   // Filter communities to only show those the user is a member of
   const myCommunities = communities.filter(community => {
     const isMember = community.members && typeof community.members === 'object' && user.id in community.members;
-    console.log(`My Communities filter - ${community.name}: user.id=${user.id}, isMember=${isMember}, members=`, community.members);
     return isMember;
   });
 
-  console.log('My Communities page:', {
-    userId: user.id,
-    userEmail: user.email,
-    totalCommunities: communities.length,
-    myCommunitiesCount: myCommunities.length
-  });
 
   return (
     <div className="section">
@@ -102,7 +96,6 @@ export default function MyCommunitiesPage() {
           <>
             <div className="grid-cards-2">
               {myCommunities.map((community) => {
-                console.log(`Rendering CommunityCard for ${community.name} in My Communities: isMember=true`);
                 return (
                 <CommunityCard
                   key={community.id}
