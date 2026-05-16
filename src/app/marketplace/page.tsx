@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/Button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card"
+import { Card, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card"
 import { Badge } from "@/components/ui/Badge"
 import { Input } from "@/components/ui/Input"
-import { PlayCircle, Star, Search, Filter, Clock, Play, Video, Crown } from "lucide-react"
+import { Star, Search, Filter, Clock, Play, Video, Crown } from "lucide-react"
 import { motion } from "framer-motion"
 
 export default function MarketplacePage() {
@@ -176,7 +176,7 @@ export default function MarketplacePage() {
         animate="show"
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       >
-        {filteredVideos.map((video, index) => (
+        {filteredVideos.map((video) => (
           <motion.div key={video.title} variants={item} className="h-full">
             <Card className="overflow-hidden h-full flex flex-col group cursor-pointer bg-background/40 backdrop-blur-md border-white/10 hover:border-rose-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(225,29,72,0.15)] relative">
               
